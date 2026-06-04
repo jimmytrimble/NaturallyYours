@@ -1,15 +1,15 @@
 //
-//  NaturallyYoursApp.swift
-//  NaturallyYours
+//  NaturallyYoursServerApp.swift
+//  NaturallyYoursServer
 //
-//  Created by Jamiel Trimble II on 5/17/26.
+//  Created by Jamiel Trimble II on 5/25/26.
 //
 
 import SwiftUI
 import SwiftData
 
 @main
-struct NaturallyYoursApp: App {
+struct NaturallyYoursServerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
