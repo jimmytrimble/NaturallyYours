@@ -1,10 +1,3 @@
-//
-//  Font+Theme.swift
-//  NaturallyYours
-//
-//  Created by Jamiel Trimble II on 5/28/26.
-//
-
 import SwiftUI
 
 extension Font {

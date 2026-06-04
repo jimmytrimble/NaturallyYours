@@ -34,13 +34,6 @@ struct HomeView: View {
             .background(Color.nyWhite)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    // Small logo in navigation bar
-                    Text("Naturally Yours")
-                        .nyLogoStyle(size: 22)
-                        .foregroundStyle(.nyBlack)
-                }
-                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         // Cart action
@@ -79,6 +72,7 @@ struct HomeView: View {
                     }
                 }
             }
+            .toolbarBackground(.hidden, for: .navigationBar)
             .alert("Thank You!", isPresented: $showingNewsletterSuccess) {
                 Button("OK") { }
             } message: {
@@ -91,53 +85,59 @@ struct HomeView: View {
     
     private var heroSection: some View {
         ZStack {
-            // Background gradient
+            // Background gradient - softer, like website
             LinearGradient(
-                colors: [Color.nySoftPink, Color.nyLightPink],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [Color.nySoftPink, Color.nyLightPink.opacity(0.6)],
+                startPoint: .top,
+                endPoint: .bottom
             )
             
-            VStack(spacing: 20) {
-                // Large Brand Logo
+            VStack(spacing: 16) {
+                // Handwritten-style "Naturally Yours" using Zapfino font
                 Text("Naturally Yours")
-                    .nyLogoStyle(size: 42)
+                    .font(.custom("Zapfino", size: 38))
                     .foregroundStyle(.nyBlack)
-                    .padding(.top, 30)
+                    .padding(.top, 20)
+                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                 
                 Text("Beauty Supply")
-                    .font(.nyHeading(20))
+                    .font(.system(size: 20, weight: .light, design: .serif))
                     .foregroundStyle(.nyBlack)
+                    .tracking(2)
+                    .padding(.top, -8)
                 
-                // Hero image - you can replace with your actual hero image from assets
-                Image(systemName: "sparkles")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.nyPink)
-                    .padding(.vertical, 20)
-                // Replace above with: Image("hero_image").resizable().aspectRatio(contentMode: .fit)
+                // Hero image - larger and more prominent
+                Image("header_photo")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 280)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
                 
                 Text("Shop all of our latest products")
-                    .font(.nySubheading(18))
+                    .font(.system(size: 18, weight: .light, design: .serif))
                     .foregroundStyle(.nyGray)
                     .italic()
+                    .padding(.top, 12)
                 
                 Button {
                     // Navigate to shop
                 } label: {
                     Text("Shop Now")
-                        .font(.nyBody(16))
-                        .fontWeight(.semibold)
+                        .font(.system(size: 17, weight: .medium, design: .serif))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 14)
+                        .padding(.horizontal, 50)
+                        .padding(.vertical, 16)
                         .background(Color.nyBlack)
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                 }
-                .padding(.bottom, 30)
+                .padding(.top, 8)
+                .padding(.bottom, 40)
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 420)
     }
     
     // MARK: - Featured Best Sellers Section

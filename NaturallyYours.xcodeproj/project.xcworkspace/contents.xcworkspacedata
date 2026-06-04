@@ -4,4 +4,49 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:ModelsUser.swift">
+   </FileRef>
+   <FileRef
+      location = "group:ServicesAuthService.swift">
+   </FileRef>
+   <FileRef
+      location = "group:ViewsLoginRegisterView.swift">
+   </FileRef>
+   <FileRef
+      location = "group:ViewsHomeView.swift">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationiOS_AUTH_SETUP.md">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationINFO_PLIST_SETUP.md">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationSETUP_CHECKLIST.md">
+   </FileRef>
+   <FileRef
+      location = "group:ConfigurationAppConfiguration.swift">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationREADME.md">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationINFO_PLIST_DETAILED_GUIDE.md">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationVISUAL_SUMMARY.md">
+   </FileRef>
+   <FileRef
+      location = "group:ExamplesExampleProductService.swift">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationIMPLEMENTATION_GUIDE.md">
+   </FileRef>
+   <FileRef
+      location = "group:DocumentationQUICK_START.md">
+   </FileRef>
+   <FileRef
+      location = "group:COMPLETE_SUMMARY.md">
+   </FileRef>
 </Workspace>

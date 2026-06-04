@@ -1,13 +1,8 @@
-//
-//  ExampleProductService.swift
-//  NaturallyYours
-//
-//  Created by Jamiel Trimble II on 5/28/26.
-//
 //  This is an EXAMPLE showing how to build on top of the authentication system.
 //  Use this as a template for creating your product catalog, cart, orders, etc.
 
 import Foundation
+import Combine
 
 // MARK: - Product Models
 
