@@ -122,8 +122,8 @@ struct HomeView: View {
                     .italic()
                     .padding(.top, 12)
                 
-                Button {
-                    // Navigate to shop
+                NavigationLink {
+                    ShopView()
                 } label: {
                     Text("Shop Now")
                         .font(.system(size: 17, weight: .medium, design: .serif))
