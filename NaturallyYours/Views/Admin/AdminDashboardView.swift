@@ -59,7 +59,7 @@ extension View {
 struct AdminInventoryView: View {
     @Environment(AdminService.self) private var adminService
 
-    @State private var products: [CatalogProduct] = []
+    @State private var allProducts: [CatalogProduct] = []
     @State private var isLoading = false
     @State private var searchText = ""
     @State private var showNewProduct = false
@@ -70,12 +70,15 @@ struct AdminInventoryView: View {
     @State private var errorMessage: String?
     @State private var showError = false
 
-    private let client = APIClient.shared
-
-    private var filtered: [CatalogProduct] {
+    private var activeProducts: [CatalogProduct] {
+        let base = allProducts.filter { $0.isActive }
         let q = searchText.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !q.isEmpty else { return products }
-        return products.filter { $0.name.lowercased().contains(q) || ($0.sku?.lowercased().contains(q) ?? false) }
+        guard !q.isEmpty else { return base }
+        return base.filter { $0.name.lowercased().contains(q) || ($0.sku?.lowercased().contains(q) ?? false) }
+    }
+
+    private var inactiveCount: Int {
+        allProducts.filter { !$0.isActive }.count
     }
 
     var body: some View {
@@ -85,7 +88,17 @@ struct AdminInventoryView: View {
                     .font(.nyCaption(13))
                     .foregroundStyle(.nySuccess)
             }
-            ForEach(filtered) { product in
+
+            if inactiveCount > 0 {
+                NavigationLink {
+                    AdminInactiveProductsView(onChange: handleChange)
+                } label: {
+                    Label("Inactive Products (\(inactiveCount))", systemImage: "archivebox")
+                        .foregroundStyle(.nyGray)
+                }
+            }
+
+            ForEach(activeProducts) { product in
                 NavigationLink {
                     AdminProductEditView(mode: .edit(product), onChange: handleChange)
                 } label: {
@@ -96,7 +109,7 @@ struct AdminInventoryView: View {
         .listStyle(.plain)
         .searchable(text: $searchText, prompt: "Search by name or SKU")
         .overlay {
-            if isLoading && products.isEmpty { ProgressView() }
+            if isLoading && allProducts.isEmpty { ProgressView() }
         }
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.inline)
@@ -146,10 +159,8 @@ struct AdminInventoryView: View {
     private func load() async {
         isLoading = true
         do {
-            let page: Page<CatalogProduct> = try await client.get(
-                "/api/products", query: [URLQueryItem(name: "per", value: "200")]
-            )
-            products = page.items
+            // Admin list includes inactive products (the public catalog hides them).
+            allProducts = try await adminService.loadAllProducts()
         } catch {
             present(error)
         }
@@ -158,12 +169,12 @@ struct AdminInventoryView: View {
 
     private func handleChange(_ updated: CatalogProduct?, deletedID: UUID?) {
         if let deletedID {
-            products.removeAll { $0.id == deletedID }
+            allProducts.removeAll { $0.id == deletedID }
         } else if let updated {
-            if let idx = products.firstIndex(where: { $0.id == updated.id }) {
-                products[idx] = updated
+            if let idx = allProducts.firstIndex(where: { $0.id == updated.id }) {
+                allProducts[idx] = updated
             } else {
-                products.insert(updated, at: 0)
+                allProducts.insert(updated, at: 0)
             }
         }
     }

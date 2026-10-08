@@ -172,9 +172,7 @@ struct AdminProductEditView: View {
         sku = product.sku ?? ""
         tagsText = product.tags.joined(separator: ", ")
         imageURLs = product.imageURLs
-        // `isActive` isn't in CatalogProduct (store only lists active products); the
-        // store only surfaces active items, so default to true and let the toggle edit it.
-        isActive = true
+        isActive = product.isActive
     }
 
     private var tags: [String] {

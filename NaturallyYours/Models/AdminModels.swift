@@ -94,3 +94,15 @@ struct ImportResult: Decodable {
     let updated: Int
     let total: Int
 }
+
+// MARK: - Payments
+
+/// Publishable Square client config from `GET /api/payments/config`, used to
+/// initialize the Square Web Payments SDK in the card-entry web view.
+struct PaymentConfig: Decodable {
+    let applicationID: String
+    let locationID: String
+    let environment: String
+
+    var isSandbox: Bool { environment == "sandbox" }
+}

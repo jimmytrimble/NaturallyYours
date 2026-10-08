@@ -32,6 +32,7 @@ struct CatalogProduct: Identifiable, Decodable, Hashable {
     let stockQuantity: Int
     let inStock: Bool
     let onSale: Bool
+    let isActive: Bool
     let imageURLs: [String]
     let sku: String?
     let tags: [String]

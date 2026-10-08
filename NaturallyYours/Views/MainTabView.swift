@@ -19,7 +19,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            HomeView(authService: authService)
+            HomeView(authService: authService, selectedTab: $selection)
                 .tabItem { Label("Home", systemImage: "house") }
                 .tag(Tab.home)
 

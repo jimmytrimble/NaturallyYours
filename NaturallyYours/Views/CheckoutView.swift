@@ -9,7 +9,7 @@ struct CheckoutView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var orderService = OrderService()
-    private let paymentProvider: PaymentTokenProvider = SandboxPaymentTokenProvider()
+    @State private var showCardEntry = false
 
     // Contact
     @State private var fullName = ""
@@ -116,13 +116,15 @@ struct CheckoutView: View {
             }
 
             Section {
-                Button(action: placeOrder) {
+                Button {
+                    showCardEntry = true
+                } label: {
                     HStack {
                         Spacer()
                         if isPlacingOrder {
                             ProgressView().tint(.white)
                         } else {
-                            Text("Pay & Place Order").fontWeight(.semibold)
+                            Text("Continue to Payment").fontWeight(.semibold)
                         }
                         Spacer()
                     }
@@ -131,9 +133,14 @@ struct CheckoutView: View {
                 .foregroundStyle(.white)
                 .disabled(!isValid || isPlacingOrder || cart.isEmpty)
 
-                Text("Payments are processed securely via Square (sandbox).")
+                Text("Card details are entered securely via Square.")
                     .font(.nyCaption(11))
                     .foregroundStyle(.nyGray)
+            }
+        }
+        .sheet(isPresented: $showCardEntry) {
+            SquareCardEntrySheet(displayAmount: cart.cart.formattedSubtotal) { token in
+                placeOrder(sourceID: token)
             }
         }
     }
@@ -202,13 +209,12 @@ struct CheckoutView: View {
         }
     }
 
-    private func placeOrder() {
+    private func placeOrder(sourceID: String) {
         isPlacingOrder = true
         Task {
             do {
-                let token = try await paymentProvider.cardToken(amount: cart.cart.subtotal)
                 let request = CheckoutRequest(
-                    sourceID: token,
+                    sourceID: sourceID,
                     email: email.trimmingCharacters(in: .whitespaces),
                     customerName: fullName.trimmingCharacters(in: .whitespaces),
                     phone: phone.isEmpty ? nil : phone,
@@ -226,9 +232,7 @@ struct CheckoutView: View {
                 cart.reset()
                 withAnimation { placedOrder = order }
             } catch {
-                errorMessage = (error as? APIError)?.errorDescription
-                    ?? (error as? PaymentError)?.errorDescription
-                    ?? error.localizedDescription
+                errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
                 showError = true
             }
             isPlacingOrder = false

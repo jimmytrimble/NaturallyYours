@@ -9,9 +9,22 @@ struct AdminProductIOController: RouteCollection {
             .grouped(AdminAuthenticatedMiddleware())
             .grouped(ModeratorMiddleware())
 
+        group.get(use: listAllProducts)
         group.on(.POST, "import", body: .collect(maxSize: "10mb"), use: importCSV)
         group.get("export", use: exportCSV)
         group.on(.POST, ":productID", "images", "upload", body: .collect(maxSize: "15mb"), use: uploadImage)
+    }
+
+    // MARK: - List (admin)
+
+    /// Lists every product, including inactive ones (which the public `/api/products`
+    /// endpoint hides). Optional `?active=true|false` filters by active state.
+    func listAllProducts(req: Request) async throws -> [ProductDTO] {
+        var query = Product.query(on: req.db).sort(\.$name)
+        if let active = req.query[Bool.self, at: "active"] {
+            query = query.filter(\.$isActive == active)
+        }
+        return try await query.all().map { $0.toDTO() }
     }
 
     // MARK: - CSV import

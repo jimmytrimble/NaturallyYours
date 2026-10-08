@@ -2,9 +2,18 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var authService: AuthService
+    @Binding var selectedTab: MainTabView.Tab
+    @Environment(ProductService.self) private var productService
     @State private var emailForNewsletter = ""
     @State private var showingNewsletterSuccess = false
-    
+
+    /// Live "best sellers": on-sale products first, otherwise the newest arrivals.
+    private var featured: [CatalogProduct] {
+        let sale = productService.products.filter { $0.onSale && $0.inStock }
+        let base = sale.isEmpty ? productService.products : sale
+        return Array(base.prefix(8))
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -32,11 +41,15 @@ struct HomeView: View {
                 }
             }
             .background(Color.nyWhite)
+            .navigationDestination(for: CatalogProduct.self) { product in
+                ProductDetailView(product: product)
+            }
+            .task { await productService.loadProducts() }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        // Cart action
+                        selectedTab = .cart
                     } label: {
                         Image(systemName: "cart")
                             .foregroundStyle(.nyBlack)
@@ -122,8 +135,8 @@ struct HomeView: View {
                     .italic()
                     .padding(.top, 12)
                 
-                NavigationLink {
-                    ShopView()
+                Button {
+                    selectedTab = .shop
                 } label: {
                     Text("Shop Now")
                         .font(.system(size: 17, weight: .medium, design: .serif))
@@ -142,45 +155,63 @@ struct HomeView: View {
     
     // MARK: - Featured Best Sellers Section
     
+    @ViewBuilder
     private var featuredBestSellersSection: some View {
-        VStack(spacing: 20) {
-            Text("FEATURED BEST SELLERS")
-                .font(.nyHeading(24))
-                .foregroundStyle(.nyBlack)
-                .padding(.top, 40)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(FeaturedProduct.sampleData) { product in
-                        ProductCard(product: product)
+        if !featured.isEmpty {
+            VStack(spacing: 20) {
+                Text("FEATURED BEST SELLERS")
+                    .font(.nyHeading(24))
+                    .foregroundStyle(.nyBlack)
+                    .padding(.top, 40)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(featured) { product in
+                            NavigationLink(value: product) {
+                                ShopProductCard(product: product)
+                                    .frame(width: 180)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
             }
+            .padding(.bottom, 30)
         }
-        .padding(.bottom, 30)
     }
     
     // MARK: - Collections Section
     
+    @ViewBuilder
     private var collectionsSection: some View {
-        VStack(spacing: 20) {
-            Text("SHOP BY COLLECTION")
-                .font(.nyHeading(24))
-                .foregroundStyle(.nyBlack)
-                .padding(.top, 20)
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                ForEach(CollectionCategory.sampleData) { collection in
-                    CollectionCard(collection: collection)
+        if !productService.categories.isEmpty {
+            VStack(spacing: 20) {
+                Text("SHOP BY COLLECTION")
+                    .font(.nyHeading(24))
+                    .foregroundStyle(.nyBlack)
+                    .padding(.top, 20)
+
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 12) {
+                    ForEach(productService.categories, id: \.self) { category in
+                        NavigationLink {
+                            ShopView(initialCategory: category)
+                        } label: {
+                            HomeCollectionTile(
+                                name: category,
+                                count: productService.products(in: category).count
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
+            .padding(.bottom, 30)
         }
-        .padding(.bottom, 30)
     }
     
     // MARK: - Featured Brands Section
@@ -383,6 +414,52 @@ struct CollectionCard: View {
     }
 }
 
+// MARK: - Home Collection Tile (live categories)
+
+struct HomeCollectionTile: View {
+    let name: String
+    let count: Int
+
+    private var iconName: String {
+        switch name {
+        case "Bundles": return "shippingbox"
+        case "Skincare": return "sparkles"
+        case "Haircare": return "comb"
+        case "Treatments": return "drop"
+        case "Men": return "person"
+        default: return "square.grid.2x2"
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.nyLightPink.opacity(0.3))
+                .aspectRatio(1.2, contentMode: .fit)
+                .overlay {
+                    Image(systemName: iconName)
+                        .font(.largeTitle)
+                        .foregroundStyle(.nyPink.opacity(0.6))
+                }
+
+            VStack(spacing: 6) {
+                Text(name)
+                    .font(.nySubheading(16))
+                    .foregroundStyle(.nyBlack)
+                    .fontWeight(.bold)
+
+                Text("\(count) \(count == 1 ? "Product" : "Products")")
+                    .font(.nyCaption(13))
+                    .foregroundStyle(.nyGray)
+            }
+            .padding(.vertical, 12)
+        }
+        .background(Color.nyWhite)
+        .cornerRadius(12)
+        .nyCardShadow()
+    }
+}
+
 // MARK: - Brand Card Component
 
 struct BrandCard: View {
@@ -477,6 +554,7 @@ struct TestimonialCard: View {
         email: "john@example.com"
     )
     authService.isAuthenticated = true
-    
-    return HomeView(authService: authService)
+
+    return HomeView(authService: authService, selectedTab: .constant(.home))
+        .environment(ProductService())
 }

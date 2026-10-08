@@ -80,6 +80,13 @@ final class AdminService {
         )
     }
 
+    /// Lists every product including inactive ones via `GET /api/admin/products`.
+    /// Pass `active` to filter server-side.
+    func loadAllProducts(active: Bool? = nil) async throws -> [CatalogProduct] {
+        let query = active.map { [URLQueryItem(name: "active", value: $0 ? "true" : "false")] } ?? []
+        return try await client.get("/api/admin/products", query: query)
+    }
+
     // MARK: - Bulk CSV
 
     func importCSV(_ csv: String) async throws -> ImportResult {

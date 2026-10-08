@@ -82,23 +82,39 @@ now points at port **8081**.
 - **Inbox** (`AdminInboxView`): shared conversation inbox, reply, close/reopen, assign-to-me.
 - Verified end-to-end on 8081: Basic login, admin order list, product create/delete.
 
-**Still TODO on iOS:**
-- Replace `SandboxPaymentTokenProvider` with the real **Square In-App Payments SDK**
-  (add via SPM/CocoaPods; present card entry; return the real nonce). Needs
-  `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` (sandbox) on the client.
-- Wire `HomeView`'s featured/collections to live catalog data (currently sample data) and
-  its cart toolbar button to the Cart tab.
-- **Server gap**: there's no admin "list all products (incl. inactive)" endpoint —
-  `GET /api/products` filters `isActive == true`, so deactivated products disappear from
-  the admin inventory list on refresh (can't easily be reactivated from the UI). Add an
-  admin list endpoint that returns inactive products too.
+**Real Square payments — done:**
+- Instead of a native SDK, checkout uses Square's **Web Payments SDK** inside a
+  `WKWebView` (`Views/SquareCardEntryView.swift`) — no SPM/CocoaPods dependency, works in
+  the simulator, and yields a real card nonce the server charges.
+- `CheckoutView` now: form → "Continue to Payment" → Square card-entry sheet → nonce →
+  `POST /api/checkout`. Removed the old `SandboxPaymentTokenProvider`.
+- Publishable client config (`applicationID` + `locationID`) is served by a new public
+  endpoint **`GET /api/payments/config`** and read by the card-entry view. Sandbox values
+  come from the server `.env` (`SQUARE_APPLICATION_ID` / `SQUARE_LOCATION_ID`).
+- ⚠️ Smoke-test the card form in the simulator: enter Square's sandbox test card
+  (4111 1111 1111 1111, any future expiry/CVV/ZIP). The web SDK needs network + an https
+  page origin (set via the web view's base URL). If API calls to `http://localhost` are
+  blocked at runtime, add an ATS exception (`NSAllowsLocalNetworking`).
+
+**Home live data — done:** `HomeView` featured best-sellers + "Shop by Collection" now come
+from the live catalog (`ProductService`); tiles deep-link into `ShopView(initialCategory:)`,
+and the hero/cart buttons switch tabs. Brands & testimonials remain sample data (no server
+source).
+
+**Inactive products — done (server + app):**
+- Server: new admin endpoint **`GET /api/admin/products`** (optional `?active=true|false`)
+  returns all products incl. inactive. `ProductDTO.isActive` is now surfaced in the client
+  `CatalogProduct`.
+- App: admin Inventory shows an "Inactive Products (N)" link →
+  `AdminInactiveProductsView`, which lists deactivated products with a one-tap
+  **Reactivate** (→ `/activate`). Verified end-to-end (deactivate → appears in list →
+  reactivate → removed).
 
 ## Next steps (ordered)
 1. ✅ **Networking layer** — done (see iOS status above).
 2. ✅ **Storefront screens** — done (Home still on sample data; see TODO above).
-3. ⏳ **Checkout** — flow + server call done via `SandboxPaymentTokenProvider`; swap in the
-   real **Square In-App Payments SDK** (add via SPM) for live card entry. Needs
-   `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` on the client (sandbox).
+3. ✅ **Checkout** — real Square card entry via the Web Payments SDK in a `WKWebView`
+   (see "Real Square payments" above).
 4. ✅ **Contact/messaging** — done (compose + thread with 5s polling).
 5. ✅ **Admin section** — done (see iOS status above): login-gated inventory CRUD,
    price/stock, image upload, CSV import/export, order logs, messaging inbox.
