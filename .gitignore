@@ -21,3 +21,10 @@ DerivedData/
 
 # Vapor / server
 db.sqlite
+
+# Environment files (secrets — Square/Baserow tokens live here)
+.env
+**/.env
+
+# Server runtime: admin-uploaded product images
+NaturallyYoursServer/Public/uploads/
