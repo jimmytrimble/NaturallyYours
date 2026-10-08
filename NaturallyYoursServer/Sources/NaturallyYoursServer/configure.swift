@@ -26,6 +26,10 @@ public func configure(_ app: Application) async throws {
 //     app.migrations.add(CreateDefaultSuperAdmin())
 //
     app.migrations.add(CreateTodo())
+
+    // Local testing convenience admin (test@account.com / 123456789, super admin).
+    // Idempotent; remove before shipping to production.
+    app.migrations.add(CreateTestAdmin())
     
     // E-commerce migrations
     app.migrations.add(CreateProduct())
