@@ -269,6 +269,6 @@ struct SeedProductsCommand: AsyncCommand {
 // MARK: - Register Command
 extension Application {
     func registerProductSeeder() {
-        asyncCommands.use(SeedProductsCommand(), as: "seed:products")
+        commands.use(SeedProductsCommand() as! (any AnyCommand), as: "seed:products")
     }
 }

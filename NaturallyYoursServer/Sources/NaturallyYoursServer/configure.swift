@@ -5,8 +5,8 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) async throws {
-    // Serve files from the /Public folder (admin-uploaded product images live here).
-    app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    // uncomment to serve files from /Public folder
+    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     // Configure database
     app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite)
@@ -31,13 +31,9 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateCart())
     app.migrations.add(CreateCartItem())
     app.migrations.add(CreateFavorite())
-    app.migrations.add(CreateOrder())
     
     // Auto-run migrations (remove in production, use vapor run migrate)
      try await app.autoMigrate()
-
-    // Seed the catalog from SeedData/products.csv on first run (empty products table).
-    try await ProductImporter.seedIfNeeded(app)
 
     // Register custom commands
     app.registerProductSeeder()

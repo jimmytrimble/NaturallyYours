@@ -27,8 +27,6 @@
 		410944CC2FBAAFE600B5B81E /* NaturallyYours.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NaturallyYours.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		410944DB2FBAAFE700B5B81E /* NaturallyYoursTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NaturallyYoursTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		410944E52FBAAFE700B5B81E /* NaturallyYoursUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NaturallyYoursUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		417DD9D0304FB47A001B4C14 /* NaturallyYours.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = NaturallyYours.xcodeproj; sourceTree = "<group>"; };
-		419B3016304F820C00B2FCEB /* NaturallyYours.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = NaturallyYours.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -91,16 +89,6 @@
 				410944DB2FBAAFE700B5B81E /* NaturallyYoursTests.xctest */,
 				410944E52FBAAFE700B5B81E /* NaturallyYoursUITests.xctest */,
 			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		417DD9D3304FB47A001B4C14 /* Products */ = {
-			isa = PBXGroup;
-			name = Products;
-			sourceTree = "<group>";
-		};
-		419B3017304F820C00B2FCEB /* Products */ = {
-			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -210,16 +198,6 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 410944CD2FBAAFE600B5B81E /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 419B3017304F820C00B2FCEB /* Products */;
-					ProjectRef = 419B3016304F820C00B2FCEB /* NaturallyYours.xcodeproj */;
-				},
-				{
-					ProductGroup = 417DD9D3304FB47A001B4C14 /* Products */;
-					ProjectRef = 417DD9D0304FB47A001B4C14 /* NaturallyYours.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				410944CB2FBAAFE600B5B81E /* NaturallyYours */,

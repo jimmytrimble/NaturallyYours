@@ -86,6 +86,6 @@ struct SeedCommand: AsyncCommand {
 
 extension Application {
     func registerCommands() {
-        asyncCommands.use(SeedCommand(), as: "seed")
+        commands.use(SeedCommand() as! (any AnyCommand), as: "seed")
     }
 }
