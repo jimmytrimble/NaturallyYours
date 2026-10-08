@@ -8,7 +8,7 @@ struct LoginRegisterView: View {
     var body: some View {
         Group {
             if authService.isAuthenticated || authService.isGuest {
-                HomeView(authService: authService)
+                MainTabView(authService: authService)
             } else {
                 if isShowingRegister {
                     RegisterView(authService: authService, isShowingRegister: $isShowingRegister)

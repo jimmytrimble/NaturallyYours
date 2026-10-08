@@ -38,29 +38,55 @@ Endpoints (base `/api`):
 - **Messaging:** customer `POST /contact`, `/conversations*`; admin shared inbox `/admin/conversations*`
 - Seed source: `NaturallyYoursServer/SeedData/products.csv` (imported on first run if products table empty)
 
-### ⏳ iOS app — baseline builds; feature build NOT started
-Existing scaffolding: `ContentView`, `MainTabView`, `HomeView`, `ShopView`, `LoginRegisterView`,
-`ServicesAuthService` (auth networking), theme (`Color+Theme`, `Font+Theme`), `AppConfiguration`,
-home models/viewmodel, `Assets.xcassets` (14 images). Target/scheme: `NaturallyYours`.
+### ⏳ iOS app — storefront built & build-verified; admin + real Square SDK remain
+Target/scheme: `NaturallyYours`. Build: BUILD SUCCEEDED. `AppConfiguration.apiBaseURL`
+now points at port **8081**.
 
-## Next steps (ordered) — build the storefront + admin UI mirroring naturallyyourssupply.com
-1. **Networking layer**: `APIClient` (shared URLSession w/ cookie-based session to match
-   server sessions), wire `AppConfiguration.apiBaseURL` to the chosen port. Services:
-   `ProductService`, `CartService`, `FavoritesService`, `OrderService`, `MessagingService`.
-   Codable models mirroring server DTOs (ProductDTO, CartDTO, OrderDTO, ConversationDTO, MessageDTO).
-   Image URL helper: if URL starts with `http` use as-is, else prepend `apiBaseURL`.
-2. **Storefront screens** (match website nav: Home, Shop, About, Contact):
-   - Home: Featured Bundles + category tiles (Haircare / Skincare / Treatments)
-   - Shop: category tree (Bundles, Skincare, Haircare→Shampoo/Conditioner/Oils/Styling, Treatments, Men), search
-   - Product detail; Cart; Favorites; Account + order history
-3. **Checkout** with **Square In-App Payments SDK** (add SDK via SPM), collect card → token →
-   `POST /api/checkout`. Needs `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` on the client
-   (sandbox). Server already charges via Payments API.
-4. **Contact/messaging** screen → `/api/contact` + conversation thread view (polling).
-5. **Admin section** (admin-login gated): inventory CRUD, price/stock edit, per-product image
-   upload, CSV import/export, order logs, messaging inbox.
-6. Verify each step via `xcodebuild` (or Xcode). Then wire a local end-to-end test
-   (server on 8081 + simulator) before deploying server to Render.
+**Done this session (storefront, steps 1–4):**
+- **Networking layer** (`NaturallyYours/Networking/APIClient.swift`): shared, cookie-aware
+  HTTP client (uses `HTTPCookieStorage.shared`, so the session cookie from `AuthService`
+  login carries to all requests). ISO8601 date strategy + camelCase keys to match Vapor's
+  output. `imageURL(for:)` helper (absolute URLs as-is; relative `/uploads/...` prepended).
+- **Models** (`NaturallyYours/Models/StoreModels.swift`): `CatalogProduct`, `Page<T>`,
+  `CartDTO`/`CartItemDTO`, `OrderDTO`/`OrderItemDTO`/`OrderStatus`, `FavoriteDTO`,
+  `ConversationDTO`/`MessageDTO`, and all request payloads — mirror the server DTOs
+  (verified against live JSON).
+- **Services** (`NaturallyYours/Services/`): `ProductService`, `CartStore`, `FavoritesStore`,
+  `OrderService`, `MessagingService` (all `@MainActor @Observable`). Plus
+  `PaymentTokenProvider` abstraction with a `SandboxPaymentTokenProvider` (returns Square's
+  `cnon:card-nonce-ok` sandbox nonce).
+- **Storefront screens**: real `MainTabView` (Home/Shop/Cart/Favorites/Account, injects all
+  services via `.environment`), `ShopView` (category chips + search + grid), `ProductDetailView`
+  (image carousel, qty, add-to-cart, favorite toggle), `CartView`, `FavoritesView`,
+  `CheckoutView` (contact+shipping form → `/api/checkout`), `ContactView` + conversation
+  thread (5s polling), `AccountView` (profile, order history, About, logout). `HomeView`
+  still uses its sample-data sections.
+- Root (`LoginRegisterView`) now routes authenticated/guest users into `MainTabView`.
+- Fixed client `AuthResponse` (`token?` instead of `message`, which had been breaking
+  login/signup decoding). Removed the conflicting `ExamplesExampleProductService.swift`.
+- **End-to-end verified** against the server on 8081: product list, cart add, and a real
+  Square **sandbox** checkout (returned a `paid` order, `paymentStatus: COMPLETED`).
+
+**Still TODO on iOS:**
+- Replace `SandboxPaymentTokenProvider` with the real **Square In-App Payments SDK**
+  (add via SPM/CocoaPods; present card entry; return the real nonce). Needs
+  `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` (sandbox) on the client.
+- Wire `HomeView`'s featured/collections to live catalog data (currently sample data) and
+  its cart toolbar button to the Cart tab.
+- **Admin section** (step 5): admin login gating, inventory CRUD, price/stock edit,
+  image upload, CSV import/export, order logs, messaging inbox.
+
+## Next steps (ordered)
+1. ✅ **Networking layer** — done (see iOS status above).
+2. ✅ **Storefront screens** — done (Home still on sample data; see TODO above).
+3. ⏳ **Checkout** — flow + server call done via `SandboxPaymentTokenProvider`; swap in the
+   real **Square In-App Payments SDK** (add via SPM) for live card entry. Needs
+   `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` on the client (sandbox).
+4. ✅ **Contact/messaging** — done (compose + thread with 5s polling).
+5. ⏳ **Admin section** (admin-login gated): inventory CRUD, price/stock edit, per-product
+   image upload, CSV import/export, order logs, messaging inbox. Admin endpoints live under
+   `/api/admin/*` and `/api/auth/admins/*` (login via HTTP Basic → `Admin.authenticator()`).
+6. ⏳ Full local end-to-end pass in the simulator (server on 8081), then deploy server to Render.
 
 ## Known issues / follow-ups
 - One product from the CSV merged due to a duplicate Title (49 created vs 50 parsed) — reconcile later.

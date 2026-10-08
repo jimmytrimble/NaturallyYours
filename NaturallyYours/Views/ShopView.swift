@@ -1,158 +1,146 @@
 import SwiftUI
-import Observation
 
-// MARK: - Catalog Product Model
-
-/// A product as returned by the server's `GET /api/products` endpoint.
-///
-/// This maps the server `ProductDTO`. The Vapor JSON encoder emits camelCase
-/// keys (no snake_case conversion is configured server-side), so the property
-/// names match the JSON keys directly. Fields we don't need (createdAt,
-/// updatedAt, weight, tags) are simply omitted — extra JSON keys are ignored.
-struct CatalogProduct: Identifiable, Decodable, Hashable {
-    let id: UUID
-    let name: String
-    let description: String
-    let price: Double
-    let salePrice: Double?
-    let effectivePrice: Double
-    let category: String
-    let stockQuantity: Int
-    let inStock: Bool
-    let onSale: Bool
-    let imageURLs: [String]
-    let sku: String?
-    let highlights: [String]
-
-    /// First image URL, if any, for the product thumbnail.
-    var primaryImageURL: URL? {
-        imageURLs.first.flatMap(URL.init(string:))
-    }
-
-    var formattedPrice: String {
-        String(format: "$%.2f", effectivePrice)
-    }
-
-    var formattedOriginalPrice: String {
-        String(format: "$%.2f", price)
-    }
-}
-
-/// The paginated envelope Vapor's `.paginate(for:)` returns:
-/// `{ "items": [...], "metadata": { "page": 1, "per": 200, "total": 42 } }`.
-private struct ProductPage: Decodable {
-    let items: [CatalogProduct]
-}
-
-// MARK: - Shop View Model
-
-@MainActor
-@Observable
-final class ShopViewModel {
-    var products: [CatalogProduct] = []
-    var isLoading = false
-    var errorMessage: String?
-
-    private var session: URLSession {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = AppConfiguration.requestTimeout
-        return URLSession(configuration: config)
-    }
-
-    /// Fetch the active product catalog from the server.
-    /// Requests a large page size so the whole catalog comes back in one call.
-    func loadProducts() async {
-        guard let url = URL(string: "\(AppConfiguration.apiBaseURL)/api/products?per=200") else {
-            errorMessage = "Invalid server URL"
-            return
-        }
-
-        isLoading = true
-        errorMessage = nil
-
-        do {
-            let (data, response) = try await session.data(from: url)
-
-            guard let http = response as? HTTPURLResponse else {
-                throw URLError(.badServerResponse)
-            }
-            guard http.statusCode == 200 else {
-                throw NSError(
-                    domain: "Shop",
-                    code: http.statusCode,
-                    userInfo: [NSLocalizedDescriptionKey: "Server returned status \(http.statusCode)"]
-                )
-            }
-
-            let page = try JSONDecoder().decode(ProductPage.self, from: data)
-            products = page.items
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-
-        isLoading = false
-    }
-}
-
-// MARK: - Shop View
-
+/// Browse the catalog: category chips, search, and a product grid. Reads the shared
+/// `ProductService` from the environment (injected at the app root).
 struct ShopView: View {
-    @State private var viewModel = ShopViewModel()
+    @Environment(ProductService.self) private var productService
+
+    /// Optional category to preselect when pushed from Home.
+    var initialCategory: String? = nil
+
+    @State private var selectedCategory: String?
+    @State private var searchText = ""
+    @State private var searchResults: [CatalogProduct] = []
+    @State private var isSearching = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
     ]
 
+    private var displayedProducts: [CatalogProduct] {
+        if !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            return searchResults
+        }
+        if let selectedCategory {
+            return productService.products(in: selectedCategory)
+        }
+        return productService.products
+    }
+
     var body: some View {
         Group {
-            if viewModel.isLoading && viewModel.products.isEmpty {
+            if productService.isLoading && productService.products.isEmpty {
                 ProgressView("Loading products…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let errorMessage = viewModel.errorMessage, viewModel.products.isEmpty {
+            } else if let errorMessage = productService.errorMessage, productService.products.isEmpty {
                 errorState(errorMessage)
-            } else if viewModel.products.isEmpty {
+            } else if productService.products.isEmpty {
                 emptyState
             } else {
-                productGrid
+                content
             }
         }
         .background(Color.nyWhite)
         .navigationTitle("Shop")
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search products")
+        .onChange(of: searchText) { _, _ in
+            Task { await runSearch() }
+        }
         .task {
-            if viewModel.products.isEmpty {
-                await viewModel.loadProducts()
-            }
+            selectedCategory = initialCategory
+            await productService.loadProducts()
         }
         .refreshable {
-            await viewModel.loadProducts()
+            await productService.loadProducts(force: true)
         }
     }
 
-    // MARK: - Product Grid
+    // MARK: - Content
 
-    private var productGrid: some View {
+    private var content: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(viewModel.products) { product in
-                    ShopProductCard(product: product)
+            if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                categoryChips
+            }
+
+            if displayedProducts.isEmpty {
+                Text(searchText.isEmpty ? "No products in this category." : "No results for “\(searchText)”.")
+                    .font(.nyBody(15))
+                    .foregroundStyle(.nyGray)
+                    .padding(.top, 60)
+            } else {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(displayedProducts) { product in
+                        NavigationLink(value: product) {
+                            ShopProductCard(product: product)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(20)
+            }
+        }
+        .navigationDestination(for: CatalogProduct.self) { product in
+            ProductDetailView(product: product)
+        }
+    }
+
+    private var categoryChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                chip(title: "All", isSelected: selectedCategory == nil) {
+                    selectedCategory = nil
+                }
+                ForEach(productService.categories, id: \.self) { category in
+                    chip(title: category, isSelected: selectedCategory == category) {
+                        selectedCategory = category
+                    }
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
         }
     }
 
-    // MARK: - Empty / Error States
+    private func chip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.nyBody(14))
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundStyle(isSelected ? .white : .nyBlack)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.nyPink : Color.nyLightGray)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Search
+
+    private func runSearch() async {
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else {
+            searchResults = []
+            return
+        }
+        isSearching = true
+        defer { isSearching = false }
+        searchResults = (try? await productService.search(query)) ?? []
+    }
+
+    // MARK: - Empty / Error states
 
     private var emptyState: some View {
         ContentUnavailableView {
             Label("No Products Yet", systemImage: "bag")
         } description: {
-            Text("Products added in Baserow will appear here once the server syncs.")
+            Text("Products will appear here once the server catalog is seeded.")
         } actions: {
             Button("Reload") {
-                Task { await viewModel.loadProducts() }
+                Task { await productService.loadProducts(force: true) }
             }
             .buttonStyle(.borderedProminent)
             .tint(.nyPink)
@@ -166,7 +154,7 @@ struct ShopView: View {
             Text(message)
         } actions: {
             Button("Try Again") {
-                Task { await viewModel.loadProducts() }
+                Task { await productService.loadProducts(force: true) }
             }
             .buttonStyle(.borderedProminent)
             .tint(.nyPink)
@@ -181,7 +169,6 @@ struct ShopProductCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Product image
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.nyLightGray)
@@ -190,9 +177,7 @@ struct ShopProductCard: View {
                         AsyncImage(url: product.primaryImageURL) { phase in
                             switch phase {
                             case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
+                                image.resizable().scaledToFill()
                             case .failure:
                                 placeholderIcon
                             case .empty:
@@ -215,7 +200,6 @@ struct ShopProductCard: View {
                 }
             }
 
-            // Product info
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.category)
                     .font(.nyCaption(12))
@@ -226,6 +210,7 @@ struct ShopProductCard: View {
                     .foregroundStyle(.nyBlack)
                     .fontWeight(.semibold)
                     .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
                 HStack(spacing: 6) {
                     Text(product.formattedPrice)
@@ -272,4 +257,5 @@ struct ShopProductCard: View {
     NavigationStack {
         ShopView()
     }
+    .environment(ProductService())
 }

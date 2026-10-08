@@ -29,11 +29,12 @@ enum AppConfiguration {
     static var apiBaseURL: String {
         switch Environment.current {
         case .development:
-            // For iOS Simulator
-            return "http://localhost:8080"
-            
+            // For iOS Simulator. Port 8081 because 8080 is taken by another app
+            // on the dev Mac — keep this in sync with the port the Vapor server runs on.
+            return "http://localhost:8081"
+
             // For physical device on same network, uncomment and use your Mac's IP:
-            // return "http://192.168.1.5:8080"
+            // return "http://192.168.1.5:8081"
             
         case .production:
             // Replace with your production server URL

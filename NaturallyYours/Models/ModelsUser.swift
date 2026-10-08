@@ -34,13 +34,20 @@ struct LoginRequest: Codable {
 
 struct AuthResponse: Codable {
     let user: UserDTO
-    let message: String
+    /// Present only for token-based auth; nil for the session-cookie flow the app uses.
+    let token: String?
 }
 
 struct UserDTO: Codable {
     let id: UUID
     let name: String
     let email: String
+
+    init(id: UUID, name: String, email: String) {
+        self.id = id
+        self.name = name
+        self.email = email
+    }
 }
 
 struct ErrorResponse: Codable {
