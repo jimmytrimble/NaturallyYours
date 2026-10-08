@@ -7,6 +7,7 @@ struct AccountView: View {
     @Environment(FavoritesStore.self) private var favorites
 
     @State private var orderService = OrderService()
+    @State private var showAdmin = false
 
     var body: some View {
         NavigationStack {
@@ -29,6 +30,9 @@ struct AccountView: View {
             }
             .task {
                 if authService.isAuthenticated { await orderService.loadMyOrders() }
+            }
+            .fullScreenCover(isPresented: $showAdmin) {
+                AdminGateView()
             }
         }
     }
@@ -121,6 +125,12 @@ struct AccountView: View {
                 AboutView()
             } label: {
                 Label("About Naturally Yours", systemImage: "info.circle")
+            }
+            Button {
+                showAdmin = true
+            } label: {
+                Label("Staff Login", systemImage: "lock.shield")
+                    .foregroundStyle(.nyBlack)
             }
         }
     }

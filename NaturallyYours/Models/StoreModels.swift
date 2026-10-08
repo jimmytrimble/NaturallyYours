@@ -115,7 +115,7 @@ struct IsFavoriteResponse: Decodable {
 
 // MARK: - Orders
 
-enum OrderStatus: String, Decodable {
+enum OrderStatus: String, Codable, CaseIterable {
     case pendingPayment = "pending_payment"
     case paid
     case fulfilled
@@ -202,7 +202,7 @@ enum MessageSenderType: String, Decodable {
     case admin
 }
 
-enum ConversationStatus: String, Decodable {
+enum ConversationStatus: String, Codable, CaseIterable {
     case open
     case closed
 }

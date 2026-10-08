@@ -118,6 +118,60 @@ final class APIClient {
         _ = try await performRaw(request)
     }
 
+    // MARK: - Admin / specialized requests
+
+    /// Performs an HTTP Basic-auth login (used by user/admin `login` endpoints) and
+    /// decodes the response. The session cookie the server returns is stored in the
+    /// shared cookie storage, so subsequent requests are authenticated.
+    func loginBasic<T: Decodable>(_ path: String, email: String, password: String) async throws -> T {
+        var request = try buildRequest(method: "POST", path: path, query: [], bodyData: nil)
+        let credentials = Data("\(email):\(password)".utf8).base64EncodedString()
+        request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")
+        return try await perform(request)
+    }
+
+    /// Sends a raw body with an explicit content type (e.g. a CSV import) and decodes
+    /// the response.
+    @discardableResult
+    func sendRaw<T: Decodable>(
+        _ method: String,
+        _ path: String,
+        body: Data,
+        contentType: String
+    ) async throws -> T {
+        var request = try buildRequest(method: method, path: path, query: [], bodyData: body)
+        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        return try await perform(request)
+    }
+
+    /// Downloads raw response bytes (e.g. a CSV export).
+    func download(_ path: String) async throws -> Data {
+        let request = try buildRequest(method: "GET", path: path, query: [], bodyData: nil)
+        return try await performRaw(request)
+    }
+
+    /// Uploads a single file as `multipart/form-data` under the given field name and
+    /// decodes the response (used for admin product image upload).
+    func uploadMultipart<T: Decodable>(
+        _ path: String,
+        fileData: Data,
+        fieldName: String = "file",
+        filename: String,
+        mimeType: String
+    ) async throws -> T {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(fileData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var request = try buildRequest(method: "POST", path: path, query: [], bodyData: body)
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        return try await perform(request)
+    }
+
     // MARK: - Image URL helper
 
     /// Resolves a product image URL. Absolute URLs (Shopify CDN, etc.) are used as-is;

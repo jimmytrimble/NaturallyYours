@@ -20,10 +20,11 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateUser())
     app.migrations.add(CreateAdmin())
     
-    // Uncomment ONLY for initial setup to create first super admin
-    // After running once, comment this out or delete the migration
+    // Uncomment ONLY for initial setup to create first super admin.
+    // Already run once — a super admin exists (admin@naturallyyours.com / ChangeMe123!),
+    // so this stays disabled. The migration is idempotent (no-op if any admin exists).
 //     app.migrations.add(CreateDefaultSuperAdmin())
-//    
+//
     app.migrations.add(CreateTodo())
     
     // E-commerce migrations

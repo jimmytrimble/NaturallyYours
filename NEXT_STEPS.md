@@ -67,14 +67,31 @@ now points at port **8081**.
 - **End-to-end verified** against the server on 8081: product list, cart add, and a real
   Square **sandbox** checkout (returned a `paid` order, `paymentStatus: COMPLETED`).
 
+**Admin section — done & verified (step 5):**
+- Reached via Account → "Staff Login" (`AdminGateView` as a full-screen cover).
+  `AdminService` (`Services/AdminService.swift`) + `Models/AdminModels.swift` cover
+  admin auth, catalog, orders, and messaging. `APIClient` gained Basic-auth login,
+  raw-body (CSV import), download (CSV export), and multipart image upload.
+- **Login**: `AdminLoginView` → `POST /api/auth/admins/login` (HTTP Basic); session
+  restored via `/me`. Default seeded super admin: **admin@naturallyyours.com /
+  ChangeMe123!** (change this!).
+- **Inventory** (`AdminInventoryView` + `AdminProductEditView`): list/search, create,
+  edit all fields, price/stock, activate/deactivate, delete, per-product image upload
+  (PhotosPicker → multipart), CSV import (fileImporter) and export (fileExporter).
+- **Orders** (`AdminOrdersView`): order log + status change (`PATCH .../status`).
+- **Inbox** (`AdminInboxView`): shared conversation inbox, reply, close/reopen, assign-to-me.
+- Verified end-to-end on 8081: Basic login, admin order list, product create/delete.
+
 **Still TODO on iOS:**
 - Replace `SandboxPaymentTokenProvider` with the real **Square In-App Payments SDK**
   (add via SPM/CocoaPods; present card entry; return the real nonce). Needs
   `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` (sandbox) on the client.
 - Wire `HomeView`'s featured/collections to live catalog data (currently sample data) and
   its cart toolbar button to the Cart tab.
-- **Admin section** (step 5): admin login gating, inventory CRUD, price/stock edit,
-  image upload, CSV import/export, order logs, messaging inbox.
+- **Server gap**: there's no admin "list all products (incl. inactive)" endpoint —
+  `GET /api/products` filters `isActive == true`, so deactivated products disappear from
+  the admin inventory list on refresh (can't easily be reactivated from the UI). Add an
+  admin list endpoint that returns inactive products too.
 
 ## Next steps (ordered)
 1. ✅ **Networking layer** — done (see iOS status above).
@@ -83,9 +100,8 @@ now points at port **8081**.
    real **Square In-App Payments SDK** (add via SPM) for live card entry. Needs
    `SQUARE_APPLICATION_ID` + `SQUARE_LOCATION_ID` on the client (sandbox).
 4. ✅ **Contact/messaging** — done (compose + thread with 5s polling).
-5. ⏳ **Admin section** (admin-login gated): inventory CRUD, price/stock edit, per-product
-   image upload, CSV import/export, order logs, messaging inbox. Admin endpoints live under
-   `/api/admin/*` and `/api/auth/admins/*` (login via HTTP Basic → `Admin.authenticator()`).
+5. ✅ **Admin section** — done (see iOS status above): login-gated inventory CRUD,
+   price/stock, image upload, CSV import/export, order logs, messaging inbox.
 6. ⏳ Full local end-to-end pass in the simulator (server on 8081), then deploy server to Render.
 
 ## Known issues / follow-ups
