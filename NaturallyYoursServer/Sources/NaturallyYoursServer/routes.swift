@@ -28,4 +28,5 @@ public func routes(_ app: Application) throws {
     try app.register(collection: FavoritesController())
     try app.register(collection: OrderController())
     try app.register(collection: AdminProductIOController())
+    try app.register(collection: MessagingController())
 }

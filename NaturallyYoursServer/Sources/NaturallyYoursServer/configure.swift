@@ -32,6 +32,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateCartItem())
     app.migrations.add(CreateFavorite())
     app.migrations.add(CreateOrder())
+    app.migrations.add(CreateMessaging())
     
     // Auto-run migrations (remove in production, use vapor run migrate)
      try await app.autoMigrate()
