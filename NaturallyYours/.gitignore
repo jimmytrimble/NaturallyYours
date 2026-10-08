@@ -21,7 +21,3 @@ DerivedData/
 
 # Vapor / server
 db.sqlite
-
-# Environment files (secrets)
-.env
-**/.env
