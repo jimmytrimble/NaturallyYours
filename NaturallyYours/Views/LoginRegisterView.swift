@@ -37,113 +37,141 @@ struct LoginView: View {
     @State private var showError = false
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                // Logo/Header
-                VStack(spacing: 8) {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.green.gradient)
-                    
-                    Text("Naturally Yours")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("Natural Beauty Products")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+        ZStack(alignment: .top) {
+            Color.nySoftPink.ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    heroHeader
+                    loginForm
                 }
-                .padding(.top, 60)
-                .padding(.bottom, 40)
-                
-                // Login Form
-                VStack(spacing: 16) {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                    
-                    SecureField("Password", text: $password)
-                        .textContentType(.password)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                    
-                    Button {
-                        Task {
-                            await handleLogin()
-                        }
-                    } label: {
-                        if isLoading {
-                            ProgressView()
-                                .tint(.white)
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Log In")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(email.isEmpty || password.isEmpty || isLoading)
-                }
-                .padding(.horizontal, 30)
-                
-                // Divider
-                HStack {
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundStyle(.secondary.opacity(0.3))
-                    
-                    Text("or")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                    
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundStyle(.secondary.opacity(0.3))
-                }
-                .padding(.horizontal, 30)
-                .padding(.vertical, 20)
-                
-                // Guest Button
-                Button {
-                    authService.continueAsGuest()
-                } label: {
-                    Text("Continue as Guest")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .padding(.horizontal, 30)
-                
-                Spacer()
-                
-                // Register Link
-                HStack {
-                    Text("Don't have an account?")
-                        .foregroundStyle(.secondary)
-                    
-                    Button("Sign Up") {
-                        isShowingRegister = true
-                    }
-                    .fontWeight(.semibold)
-                }
-                .padding(.bottom, 30)
-            }
-            .alert("Login Failed", isPresented: $showError) {
-                Button("OK") {
-                    showError = false
-                }
-            } message: {
-                Text(errorMessage ?? "An unknown error occurred")
             }
         }
+        .alert("Login Failed", isPresented: $showError) {
+            Button("OK") { showError = false }
+        } message: {
+            Text(errorMessage ?? "An unknown error occurred")
+        }
+    }
+
+    // MARK: - Hero
+
+    private var heroHeader: some View {
+        ZStack(alignment: .bottom) {
+            Image("login_hero")
+                .resizable()
+                .scaledToFill()
+                .frame(height: 400)
+                .frame(maxWidth: .infinity)
+                .clipped()
+
+            // Fade the photo into the soft-pink background.
+            LinearGradient(
+                colors: [.clear, .clear, Color.nySoftPink],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 400)
+
+            VStack(spacing: 2) {
+                Text("Naturally Yours")
+                    .font(.custom("Zapfino", size: 34))
+                    .foregroundStyle(.nyBlack)
+                    .shadow(color: .white.opacity(0.6), radius: 4)
+
+                Text("BEAUTY SUPPLY")
+                    .font(.system(size: 14, weight: .semibold, design: .serif))
+                    .tracking(4)
+                    .foregroundStyle(.nyBlack.opacity(0.8))
+            }
+            .padding(.bottom, 18)
+        }
+        .frame(height: 400)
+        .ignoresSafeArea(edges: .top)
+    }
+
+    // MARK: - Form
+
+    private var loginForm: some View {
+        VStack(spacing: 18) {
+            Text("Welcome back")
+                .font(.nyHeading(22))
+                .foregroundStyle(.nyBlack)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(spacing: 14) {
+                TextField("Email", text: $email)
+                    .textContentType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.emailAddress)
+                    .padding()
+                    .background(Color.nyWhite)
+                    .cornerRadius(12)
+
+                SecureField("Password", text: $password)
+                    .textContentType(.password)
+                    .padding()
+                    .background(Color.nyWhite)
+                    .cornerRadius(12)
+            }
+
+            Button {
+                Task { await handleLogin() }
+            } label: {
+                Group {
+                    if isLoading {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("Log In").fontWeight(.semibold)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.nyPink)
+                .foregroundStyle(.white)
+                .cornerRadius(12)
+            }
+            .disabled(email.isEmpty || password.isEmpty || isLoading)
+            .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1)
+
+            HStack {
+                Rectangle().frame(height: 1).foregroundStyle(.nyGray.opacity(0.3))
+                Text("or").font(.nyCaption(13)).foregroundStyle(.nyGray)
+                Rectangle().frame(height: 1).foregroundStyle(.nyGray.opacity(0.3))
+            }
+            .padding(.vertical, 2)
+
+            Button {
+                authService.continueAsGuest()
+            } label: {
+                Text("Continue as Guest")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.nyPink)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.nyPink, lineWidth: 1.5)
+                    )
+            }
+
+            HStack(spacing: 4) {
+                Text("Don't have an account?")
+                    .font(.nyBody(14))
+                    .foregroundStyle(.nyGray)
+                Button("Sign Up") {
+                    isShowingRegister = true
+                }
+                .font(.nyBody(14))
+                .fontWeight(.semibold)
+                .tint(.nyPink)
+            }
+            .padding(.top, 8)
+        }
+        .padding(.horizontal, 28)
+        .padding(.top, 8)
+        .padding(.bottom, 40)
     }
     
     private func handleLogin() async {
@@ -181,21 +209,21 @@ struct RegisterView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Header
-                    VStack(spacing: 8) {
-                        Image(systemName: "leaf.fill")
-                            .font(.system(size: 50))
-                            .foregroundStyle(.green.gradient)
-                        
+                    VStack(spacing: 6) {
+                        Text("Naturally Yours")
+                            .font(.custom("Zapfino", size: 30))
+                            .foregroundStyle(.nyPink)
+
                         Text("Create Account")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
-                        Text("Join Naturally Yours today")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.nyHeading(24))
+                            .foregroundStyle(.nyBlack)
+
+                        Text("Join the Naturally Yours family")
+                            .font(.nyBody(14))
+                            .foregroundStyle(.nyGray)
                     }
-                    .padding(.top, 40)
-                    .padding(.bottom, 30)
+                    .padding(.top, 30)
+                    .padding(.bottom, 24)
                     
                     // Registration Form
                     VStack(spacing: 16) {
