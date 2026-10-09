@@ -303,19 +303,21 @@ struct AdminProductGridCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: product.primaryImageURL) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else {
-                    Image(systemName: "photo")
-                        .font(.title)
-                        .foregroundStyle(.nyGray.opacity(0.3))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.nyLightGray)
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    AsyncImage(url: product.primaryImageURL) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            Image(systemName: "photo")
+                                .font(.title)
+                                .foregroundStyle(.nyGray.opacity(0.3))
+                        }
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .aspectRatio(1, contentMode: .fill)
-            .background(Color.nyLightGray)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
             Text(product.name)
                 .font(.nyBody(14))
