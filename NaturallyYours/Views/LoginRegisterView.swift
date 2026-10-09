@@ -61,43 +61,52 @@ struct LoginView: View {
             Image("login_hero")
                 .resizable()
                 .scaledToFill()
-                .frame(height: 400)
+                .frame(height: 460)
                 .frame(maxWidth: .infinity)
                 .clipped()
+                // Feather both the top and bottom edges so the photo melts into the
+                // soft-pink background instead of ending on a hard rectangle.
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .black, location: 0.20),
+                            .init(color: .black, location: 0.66),
+                            .init(color: .clear, location: 1.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
-            // Fade the photo into the soft-pink background.
-            LinearGradient(
-                colors: [.clear, .clear, Color.nySoftPink],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 400)
-
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text("Naturally Yours")
                     .font(.custom("Zapfino", size: 34))
                     .foregroundStyle(.nyBlack)
-                    .shadow(color: .white.opacity(0.6), radius: 4)
 
                 Text("BEAUTY SUPPLY")
-                    .font(.system(size: 14, weight: .semibold, design: .serif))
-                    .tracking(4)
-                    .foregroundStyle(.nyBlack.opacity(0.8))
+                    .font(.system(size: 13, weight: .semibold, design: .serif))
+                    .tracking(5)
+                    .foregroundStyle(.nyBlack.opacity(0.65))
             }
-            .padding(.bottom, 18)
+            .padding(.bottom, 28)
         }
-        .frame(height: 400)
-        .ignoresSafeArea(edges: .top)
+        .frame(height: 440)
     }
 
     // MARK: - Form
 
     private var loginForm: some View {
         VStack(spacing: 18) {
-            Text("Welcome back")
-                .font(.nyHeading(22))
-                .foregroundStyle(.nyBlack)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 3) {
+                Text("Welcome back")
+                    .font(.system(size: 27, weight: .regular, design: .serif))
+                    .foregroundStyle(.nyBlack)
+                Text("Sign in to continue")
+                    .font(.system(size: 14, weight: .regular, design: .serif))
+                    .foregroundStyle(.nyGray)
+            }
+            .padding(.bottom, 4)
 
             VStack(spacing: 14) {
                 TextField("Email", text: $email)
@@ -106,14 +115,12 @@ struct LoginView: View {
                     .autocorrectionDisabled()
                     .keyboardType(.emailAddress)
                     .padding()
-                    .background(Color.nyWhite)
-                    .cornerRadius(12)
+                    .background(fieldBackground)
 
                 SecureField("Password", text: $password)
                     .textContentType(.password)
                     .padding()
-                    .background(Color.nyWhite)
-                    .cornerRadius(12)
+                    .background(fieldBackground)
             }
 
             Button {
@@ -170,10 +177,21 @@ struct LoginView: View {
             .padding(.top, 8)
         }
         .padding(.horizontal, 28)
-        .padding(.top, 8)
         .padding(.bottom, 40)
     }
-    
+
+    /// Soft white field background with a subtle pink border + shadow so inputs lift
+    /// gently off the pink background and feel part of the palette.
+    private var fieldBackground: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.nyWhite)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.nyLightPink, lineWidth: 1)
+            )
+            .shadow(color: Color.nyPink.opacity(0.07), radius: 6, y: 3)
+    }
+
     private func handleLogin() async {
         isLoading = true
         errorMessage = nil
