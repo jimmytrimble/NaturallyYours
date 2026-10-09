@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var showingNewsletterSuccess = false
     @State private var showingContact = false
     @State private var heroIndex = 0
+    @State private var heroZoomedIn = false
 
     /// Rotating hero imagery (on-brand pink shot + warm/joyful portraits).
     private let heroImages = ["header_photo", "hero_portrait_1", "hero_portrait_2", "hero_portrait_3"]
@@ -136,6 +137,7 @@ struct HomeView: View {
                         .scaledToFill()
                         .frame(maxWidth: .infinity)
                         .frame(height: heroHeight)
+                        .scaleEffect(heroZoomedIn ? 1.14 : 1.0)
                         .clipped()
                         .tag(index)
                 }
@@ -159,9 +161,22 @@ struct HomeView: View {
             heroOverlay
         }
         .frame(height: heroHeight)
+        .onAppear { startKenBurns() }
+        .onChange(of: heroIndex) { _, _ in startKenBurns() }
         .onReceive(heroTimer) { _ in
             withAnimation(.easeInOut(duration: 0.9)) {
                 heroIndex = (heroIndex + 1) % heroImages.count
+            }
+        }
+    }
+
+    /// Slow "Ken Burns" push-in: reset to normal on each slide, then ease toward a
+    /// gentle zoom over the dwell time for a more dynamic, premium feel.
+    private func startKenBurns() {
+        heroZoomedIn = false
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 7)) {
+                heroZoomedIn = true
             }
         }
     }

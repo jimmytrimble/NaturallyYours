@@ -75,15 +75,31 @@ struct ContactView: View {
     }
 
     private var emptyState: some View {
-        ContentUnavailableView {
-            Label("No Messages Yet", systemImage: "bubble.left.and.bubble.right")
-        } description: {
-            Text("Have a question? Start a conversation with our team.")
-        } actions: {
+        VStack(spacing: 14) {
+            Circle()
+                .fill(Color.nySoftPink)
+                .frame(width: 84, height: 84)
+                .overlay {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.nyPink)
+                }
+
+            Text("How Can We Help?")
+                .font(.system(size: 22, weight: .semibold, design: .serif))
+                .foregroundStyle(.nyBlack)
+
+            Text("Questions about products, orders, or anything else? Our team is here for you.")
+                .font(.nyBody(14))
+                .foregroundStyle(.nyGray)
+                .multilineTextAlignment(.center)
+
             Button("New Message") { showCompose = true }
-                .buttonStyle(.borderedProminent)
-                .tint(.nyPink)
+                .buttonStyle(.nyPrimary(fullWidth: false))
+                .padding(.top, 4)
         }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

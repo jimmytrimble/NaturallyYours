@@ -35,7 +35,8 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showError = false
-    
+    @State private var heroZoomedIn = false
+
     var body: some View {
         ZStack(alignment: .top) {
             Color.nySoftPink.ignoresSafeArea()
@@ -64,7 +65,13 @@ struct LoginView: View {
                 .scaledToFill()
                 .frame(height: 400)
                 .frame(maxWidth: .infinity)
+                .scaleEffect(heroZoomedIn ? 1.08 : 1.0)
                 .clipped()
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 14).repeatForever(autoreverses: true)) {
+                        heroZoomedIn = true
+                    }
+                }
                 // Feather both the top and bottom edges so the photo melts into the
                 // soft-pink background instead of ending on a hard rectangle.
                 .mask(
@@ -135,14 +142,16 @@ struct LoginView: View {
                     if isLoading {
                         ProgressView().tint(.white)
                     } else {
-                        Text("Log In").fontWeight(.semibold)
+                        Text("Log In")
+                            .font(.system(size: 16, weight: .semibold, design: .serif))
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.nyPink)
+                .background(LinearGradient.nyBrand)
                 .foregroundStyle(.white)
-                .cornerRadius(12)
+                .clipShape(Capsule())
+                .shadow(color: Color.nyPink.opacity(0.4), radius: 10, y: 5)
             }
             .disabled(email.isEmpty || password.isEmpty || isLoading)
             .opacity(email.isEmpty || password.isEmpty ? 0.6 : 1)
@@ -158,13 +167,12 @@ struct LoginView: View {
                 authService.continueAsGuest()
             } label: {
                 Text("Continue as Guest")
-                    .fontWeight(.semibold)
+                    .font(.system(size: 16, weight: .semibold, design: .serif))
                     .foregroundStyle(.nyPink)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, 15)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.nyPink, lineWidth: 1.5)
+                        Capsule().stroke(Color.nyPink, lineWidth: 1.5)
                     )
             }
 
