@@ -431,16 +431,34 @@ struct HomeCollectionTile: View {
         }
     }
 
+    /// Asset name for the category thumbnail, if one exists.
+    private var imageAsset: String? {
+        switch name {
+        case "Bundles": return "collection_bundles"
+        case "Skincare": return "collection_skincare"
+        case "Haircare": return "collection_haircare"
+        case "Treatments": return "collection_treatments"
+        case "Men": return "collection_men"
+        default: return nil
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.nyLightPink.opacity(0.3))
+            Color.nyLightPink.opacity(0.3)
                 .aspectRatio(1.2, contentMode: .fit)
                 .overlay {
-                    Image(systemName: iconName)
-                        .font(.largeTitle)
-                        .foregroundStyle(.nyPink.opacity(0.6))
+                    if let imageAsset {
+                        Image(imageAsset)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: iconName)
+                            .font(.largeTitle)
+                            .foregroundStyle(.nyPink.opacity(0.6))
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
             VStack(spacing: 6) {
                 Text(name)

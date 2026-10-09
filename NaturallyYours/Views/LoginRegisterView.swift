@@ -84,11 +84,15 @@ struct LoginView: View {
                 Text("Naturally Yours")
                     .font(.custom("Zapfino", size: 34))
                     .foregroundStyle(.nyBlack)
+                    // Soft white halo so the script stays legible over darker areas.
+                    .shadow(color: .white.opacity(0.9), radius: 8)
+                    .shadow(color: .white.opacity(0.7), radius: 3)
 
                 Text("BEAUTY SUPPLY")
                     .font(.system(size: 13, weight: .semibold, design: .serif))
                     .tracking(5)
-                    .foregroundStyle(.nyBlack.opacity(0.65))
+                    .foregroundStyle(.nyBlack.opacity(0.7))
+                    .shadow(color: .white.opacity(0.8), radius: 4)
             }
             .padding(.bottom, 28)
         }

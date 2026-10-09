@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "collection_haircare.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
