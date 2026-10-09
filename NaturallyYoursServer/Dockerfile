@@ -1,7 +1,9 @@
 # ================================
 # Build image
 # ================================
-FROM swift:6.1-noble AS build
+# Pull base images via Google's public Docker Hub mirror to avoid Render's
+# rate-limited docker.io mirror (HTTP 429 on anonymous pulls).
+FROM mirror.gcr.io/library/swift:6.1-noble AS build
 
 # Install OS updates
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -55,7 +57,7 @@ RUN [ -d /build/SeedData ] && { mv /build/SeedData ./SeedData && chmod -R a-w ./
 # ================================
 # Run image
 # ================================
-FROM ubuntu:noble
+FROM mirror.gcr.io/library/ubuntu:noble
 
 # Make sure all system packages are up to date, and install only essential packages.
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
