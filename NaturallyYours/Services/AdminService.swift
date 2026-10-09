@@ -22,9 +22,13 @@ final class AdminService {
     // MARK: - Auth
 
     /// Logs in via `POST /api/auth/admins/login` (HTTP Basic).
+    ///
+    /// The email is normalized (trimmed + lowercased) because the server matches it
+    /// case-sensitively; an auto-capitalized or space-padded entry would otherwise 401.
     func login(email: String, password: String) async throws {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let response: AdminAuthResponse = try await client.loginBasic(
-            "/api/auth/admins/login", email: email, password: password
+            "/api/auth/admins/login", email: normalizedEmail, password: password
         )
         admin = response.admin
     }

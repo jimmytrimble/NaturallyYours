@@ -59,7 +59,7 @@ class AuthService: ObservableObject {
         
         let body = SignupRequest(
             name: fullName,
-            email: email,
+            email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
             password: password,
             confirmPassword: password
         )
@@ -98,9 +98,11 @@ class AuthService: ObservableObject {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        
-        // Use Basic Authentication
-        let credentials = "\(email):\(password)"
+
+        // Use Basic Authentication. Normalize the email (trim + lowercase) because the
+        // server matches it case-sensitively.
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let credentials = "\(normalizedEmail):\(password)"
             .data(using: .utf8)!
             .base64EncodedString()
         request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")

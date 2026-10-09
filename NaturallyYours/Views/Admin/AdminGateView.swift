@@ -56,6 +56,7 @@ struct AdminLoginView: View {
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress)
                         .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                         .keyboardType(.emailAddress)
                         .padding()
                         .background(Color.nyLightGray)
