@@ -189,6 +189,29 @@ struct MessagingController: RouteCollection {
 
         req.logger.info("Admin \(admin.email) replied to conversation \(id)")
 
+        // Email the reply to the customer from the support mailbox (best-effort —
+        // a send failure must not fail the in-app reply). No-op if SMTP isn't configured.
+        if let emailConfig = EmailConfiguration.fromEnvironment() {
+            let service = EmailService(config: emailConfig, logger: req.logger)
+            let customerEmail = conversation.customerEmail
+            let customerName = conversation.customerName
+            let subject = "Re: \(conversation.subject) — Naturally Yours"
+            let body = """
+            \(data.message)
+
+            —
+            \(admin.name), Naturally Yours Support
+
+            (You can also view and reply to this conversation in the Naturally Yours app.)
+            """
+            do {
+                try await service.send(to: customerEmail, name: customerName, subject: subject, body: body)
+                req.logger.info("Support email sent to \(customerEmail) for conversation \(id)")
+            } catch {
+                req.logger.error("Failed to email support reply to \(customerEmail): \(String(reflecting: error))")
+            }
+        }
+
         try await loadMessagesSorted(conversation, on: req.db)
         return conversation.toDTO(includeMessages: true)
     }
