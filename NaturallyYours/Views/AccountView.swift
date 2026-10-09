@@ -69,23 +69,16 @@ struct AccountView: View {
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("You're browsing as a guest")
-                        .font(.nyBody(15))
+                        .font(.system(size: 18, weight: .semibold, design: .serif))
                         .foregroundStyle(.nyBlack)
                     Text("Sign in to save favorites and track orders.")
                         .font(.nyCaption(13))
                         .foregroundStyle(.nyGray)
-                    Button {
+                    Button("Sign In / Create Account") {
                         signOutToLogin()
-                    } label: {
-                        Text("Sign In / Create Account")
-                            .font(.nyBody(15))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color.nyPink)
-                            .cornerRadius(10)
                     }
+                    .buttonStyle(.nyPrimary)
+                    .padding(.top, 4)
                 }
                 .padding(.vertical, 6)
             }

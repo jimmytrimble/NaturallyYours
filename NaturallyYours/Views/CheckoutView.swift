@@ -129,7 +129,11 @@ struct CheckoutView: View {
                         Spacer()
                     }
                 }
-                .listRowBackground(isValid ? Color.nyPink : Color.nyGray)
+                .listRowBackground(
+                    Group {
+                        if isValid { LinearGradient.nyBrand } else { Color.nyGray }
+                    }
+                )
                 .foregroundStyle(.white)
                 .disabled(!isValid || isPlacingOrder || cart.isEmpty)
 
@@ -156,7 +160,7 @@ struct CheckoutView: View {
                     .padding(.top, 40)
 
                 Text("Thank you!")
-                    .font(.nyHeading(26))
+                    .font(.system(size: 28, weight: .semibold, design: .serif))
                     .foregroundStyle(.nyBlack)
 
                 Text("Order \(order.orderNumber)")
@@ -175,17 +179,10 @@ struct CheckoutView: View {
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
 
-                Button {
+                Button("Continue Shopping") {
                     dismiss()
-                } label: {
-                    Text("Continue Shopping")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.nyPink)
-                        .foregroundStyle(.white)
-                        .cornerRadius(10)
                 }
+                .buttonStyle(.nyPrimary)
                 .padding(.horizontal, 20)
             }
         }

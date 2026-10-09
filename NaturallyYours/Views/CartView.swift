@@ -78,17 +78,10 @@ struct CartView: View {
                 .foregroundStyle(.nyGray)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button {
+            Button("Checkout") {
                 showCheckout = true
-            } label: {
-                Text("Checkout")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.nyPink)
-                    .foregroundStyle(.white)
-                    .cornerRadius(10)
             }
+            .buttonStyle(.nyPrimary)
         }
         .padding(20)
         .background(.ultraThinMaterial)
