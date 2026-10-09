@@ -100,10 +100,15 @@ struct AdminConversationThreadView: View {
     @State private var replyText = ""
     @State private var isSending = false
 
+    @Environment(\.openURL) private var openURL
+
     private var isClosed: Bool { conversation?.status == .closed }
 
     var body: some View {
         VStack(spacing: 0) {
+            if let conversation {
+                customerHeader(conversation)
+            }
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 12) {
@@ -135,6 +140,13 @@ struct AdminConversationThreadView: View {
                         Label(isClosed ? "Reopen" : "Mark Closed",
                               systemImage: isClosed ? "envelope.open" : "checkmark.circle")
                     }
+                    if let conversation, let url = mailtoURL(for: conversation) {
+                        Button {
+                            openURL(url)
+                        } label: {
+                            Label("Reply via Email", systemImage: "envelope")
+                        }
+                    }
                     Button {
                         assignToMe()
                     } label: {
@@ -146,6 +158,43 @@ struct AdminConversationThreadView: View {
             }
         }
         .task { await load() }
+    }
+
+    private func customerHeader(_ conversation: ConversationDTO) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(conversation.customerName)
+                    .font(.nyBody(14)).fontWeight(.semibold)
+                    .foregroundStyle(.nyBlack)
+                Text(conversation.customerEmail)
+                    .font(.nyCaption(12)).foregroundStyle(.nyGray)
+            }
+            Spacer()
+            if let url = mailtoURL(for: conversation) {
+                Button {
+                    openURL(url)
+                } label: {
+                    Label("Email", systemImage: "envelope")
+                        .font(.nyCaption(13)).fontWeight(.semibold)
+                        .foregroundStyle(.nyPink)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.nyLightGray.opacity(0.5))
+    }
+
+    /// Builds a `mailto:` link to the customer so an admin can respond from their
+    /// device Mail app (e.g. the configured Zoho support account).
+    private func mailtoURL(for conversation: ConversationDTO) -> URL? {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = conversation.customerEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: "Re: \(conversation.subject) — Naturally Yours")
+        ]
+        return components.url
     }
 
     private var replyBar: some View {
