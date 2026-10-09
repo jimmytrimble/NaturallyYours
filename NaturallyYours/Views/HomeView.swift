@@ -522,19 +522,21 @@ struct BrandCard: View {
                 .frame(width: 100, height: 100)
                 .overlay {
                     // Use the official logo if one has been added to the asset catalog,
-                    // otherwise show a clean monogram badge.
+                    // otherwise show a clean monogram badge. The logo spans the circle's
+                    // width (full brand name visible) and the white circle fills the rest.
                     if UIImage(named: brand.logoImageName) != nil {
                         Image(brand.logoImageName)
                             .resizable()
                             .scaledToFit()
-                            .padding(18)
-                            .clipShape(Circle())
+                            .frame(width: 100, height: 100)
+                            .padding(.horizontal, 6)
                     } else {
                         Text(monogram)
                             .font(.system(size: 30, weight: .semibold, design: .serif))
                             .foregroundStyle(.nyPink)
                     }
                 }
+                .clipShape(Circle())
                 .overlay(
                     Circle().stroke(Color.nyLightPink, lineWidth: 1.5)
                 )
