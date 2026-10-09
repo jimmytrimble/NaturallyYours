@@ -34,9 +34,15 @@ struct AdminProductEditView: View {
     @State private var isUploading = false
     @State private var errorMessage: String?
     @State private var showError = false
-    @State private var showDeleteConfirm = false
+    @State private var showArchiveConfirm = false
 
     private var isEditing: Bool { editingProductID != nil }
+
+    /// Whether the product was active when this editor opened (drives Archive vs Restore).
+    private var originalIsActive: Bool {
+        if case let .edit(product) = mode { return product.isActive }
+        return true
+    }
 
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty &&
@@ -86,11 +92,24 @@ struct AdminProductEditView: View {
 
             if isEditing {
                 Section {
-                    Button(role: .destructive) {
-                        showDeleteConfirm = true
-                    } label: {
-                        Label("Delete Product", systemImage: "trash")
+                    if originalIsActive {
+                        Button(role: .destructive) {
+                            showArchiveConfirm = true
+                        } label: {
+                            Label("Archive Product", systemImage: "archivebox")
+                        }
+                    } else {
+                        Button {
+                            setArchived(false)
+                        } label: {
+                            Label("Restore Product", systemImage: "arrow.uturn.backward")
+                                .foregroundStyle(.nySuccess)
+                        }
                     }
+                } footer: {
+                    Text(originalIsActive
+                         ? "Archiving hides this product from the store and moves it to Inactive Products. You can restore it anytime — nothing is deleted."
+                         : "Restoring makes this product visible in the store again.")
                 }
             }
         }
@@ -102,9 +121,11 @@ struct AdminProductEditView: View {
         } message: {
             Text(errorMessage ?? "Please try again.")
         }
-        .confirmationDialog("Delete this product?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) { delete() }
+        .confirmationDialog("Archive this product?", isPresented: $showArchiveConfirm, titleVisibility: .visible) {
+            Button("Archive", role: .destructive) { setArchived(true) }
             Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("It will be hidden from the store and moved to Inactive Products. You can restore it anytime.")
         }
     }
 
@@ -213,12 +234,14 @@ struct AdminProductEditView: View {
         }
     }
 
-    private func delete() {
+    /// Archives (deactivates) or restores (reactivates) the product — a soft, reversible
+    /// action rather than a hard delete, so nothing is lost.
+    private func setArchived(_ archived: Bool) {
         guard let id = editingProductID else { return }
         Task {
             do {
-                try await adminService.deleteProduct(id: id)
-                onChange(nil, id)
+                let updated = try await adminService.setActive(id: id, isActive: !archived)
+                onChange(updated, nil)
                 dismiss()
             } catch {
                 present(error)

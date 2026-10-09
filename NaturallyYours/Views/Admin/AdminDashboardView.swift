@@ -81,32 +81,18 @@ struct AdminInventoryView: View {
         allProducts.filter { !$0.isActive }.count
     }
 
+    /// Persisted inventory layout preference (list vs. grid).
+    @AppStorage("adminInventoryUseGrid") private var useGrid = false
+
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
     var body: some View {
-        List {
-            if let banner {
-                Text(banner)
-                    .font(.nyCaption(13))
-                    .foregroundStyle(.nySuccess)
-            }
-
-            if inactiveCount > 0 {
-                NavigationLink {
-                    AdminInactiveProductsView(onChange: handleChange)
-                } label: {
-                    Label("Inactive Products (\(inactiveCount))", systemImage: "archivebox")
-                        .foregroundStyle(.nyGray)
-                }
-            }
-
-            ForEach(activeProducts) { product in
-                NavigationLink {
-                    AdminProductEditView(mode: .edit(product), onChange: handleChange)
-                } label: {
-                    AdminProductRow(product: product)
-                }
-            }
+        Group {
+            if useGrid { gridContent } else { listContent }
         }
-        .listStyle(.plain)
         .searchable(text: $searchText, prompt: "Search by name or SKU")
         .overlay {
             if isLoading && allProducts.isEmpty { ProgressView() }
@@ -115,6 +101,15 @@ struct AdminInventoryView: View {
         .navigationBarTitleDisplayMode(.inline)
         .adminToolbar()
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    withAnimation { useGrid.toggle() }
+                } label: {
+                    Image(systemName: useGrid ? "list.bullet" : "square.grid.2x2")
+                        .foregroundStyle(.nyPink)
+                }
+                .accessibilityLabel(useGrid ? "View as list" : "View as grid")
+            }
             ToolbarItem(placement: .topBarLeading) {
                 Menu {
                     Button {
@@ -152,6 +147,64 @@ struct AdminInventoryView: View {
         }
         .task { await load() }
         .refreshable { await load() }
+    }
+
+    // MARK: - Layouts
+
+    private var listContent: some View {
+        List {
+            if let banner {
+                Text(banner).font(.nyCaption(13)).foregroundStyle(.nySuccess)
+            }
+            if inactiveCount > 0 {
+                inactiveLink
+            }
+            ForEach(activeProducts) { product in
+                NavigationLink {
+                    AdminProductEditView(mode: .edit(product), onChange: handleChange)
+                } label: {
+                    AdminProductRow(product: product)
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    private var gridContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if let banner {
+                    Text(banner).font(.nyCaption(13)).foregroundStyle(.nySuccess)
+                }
+                if inactiveCount > 0 {
+                    inactiveLink
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.nyLightGray)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                LazyVGrid(columns: gridColumns, spacing: 12) {
+                    ForEach(activeProducts) { product in
+                        NavigationLink {
+                            AdminProductEditView(mode: .edit(product), onChange: handleChange)
+                        } label: {
+                            AdminProductGridCard(product: product)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+
+    private var inactiveLink: some View {
+        NavigationLink {
+            AdminInactiveProductsView(onChange: handleChange)
+        } label: {
+            Label("Inactive Products (\(inactiveCount))", systemImage: "archivebox")
+                .foregroundStyle(.nyGray)
+        }
     }
 
     // MARK: - Data
@@ -242,5 +295,47 @@ struct AdminProductRow: View {
             Spacer()
         }
         .padding(.vertical, 4)
+    }
+}
+
+struct AdminProductGridCard: View {
+    let product: CatalogProduct
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            AsyncImage(url: product.primaryImageURL) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                } else {
+                    Image(systemName: "photo")
+                        .font(.title)
+                        .foregroundStyle(.nyGray.opacity(0.3))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fill)
+            .background(Color.nyLightGray)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            Text(product.name)
+                .font(.nyBody(14))
+                .fontWeight(.semibold)
+                .foregroundStyle(.nyBlack)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+
+            HStack(spacing: 6) {
+                Text(product.formattedPrice).foregroundStyle(.nyBlack)
+                Spacer()
+                Text("Stock \(product.stockQuantity)")
+                    .foregroundStyle(product.inStock ? .nyGray : .nyError)
+            }
+            .font(.nyCaption(12))
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.nyWhite)
+        .cornerRadius(12)
+        .nyCardShadow()
     }
 }
