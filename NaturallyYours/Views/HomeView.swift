@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 struct HomeView: View {
     @ObservedObject var authService: AuthService
@@ -8,6 +9,11 @@ struct HomeView: View {
     @State private var emailForNewsletter = ""
     @State private var showingNewsletterSuccess = false
     @State private var showingContact = false
+    @State private var heroIndex = 0
+
+    /// Rotating hero imagery (on-brand pink shot + warm/joyful portraits).
+    private let heroImages = ["header_photo", "hero_portrait_1", "hero_portrait_2", "hero_portrait_3"]
+    private let heroTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     /// Live "best sellers": on-sale products first, otherwise the newest arrivals.
     private var featured: [CatalogProduct] {
@@ -43,6 +49,7 @@ struct HomeView: View {
                 }
             }
             .background(Color.nyWhite)
+            .ignoresSafeArea(edges: .top)
             .navigationDestination(for: CatalogProduct.self) { product in
                 ProductDetailView(product: product)
             }
@@ -53,8 +60,7 @@ struct HomeView: View {
                     Button {
                         selectedTab = .cart
                     } label: {
-                        Image(systemName: "cart")
-                            .foregroundStyle(.nyBlack)
+                        toolbarIcon("cart")
                     }
                 }
                 
@@ -99,8 +105,7 @@ struct HomeView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .foregroundStyle(.nyBlack)
+                        toolbarIcon("line.3.horizontal")
                     }
                 }
             }
@@ -118,62 +123,112 @@ struct HomeView: View {
     }
     
     // MARK: - Hero Section
-    
+
+    private let heroHeight: CGFloat = 580
+
     private var heroSection: some View {
-        ZStack {
-            // Background gradient - softer, like website
-            LinearGradient(
-                colors: [Color.nySoftPink, Color.nyLightPink.opacity(0.6)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            
-            VStack(spacing: 16) {
-                // Handwritten-style "Naturally Yours" using Zapfino font
-                Text("Naturally Yours")
-                    .font(.custom("Zapfino", size: 38))
-                    .foregroundStyle(.nyBlack)
-                    .padding(.top, 20)
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                
-                Text("Beauty Supply")
-                    .font(.system(size: 20, weight: .light, design: .serif))
-                    .foregroundStyle(.nyBlack)
-                    .tracking(2)
-                    .padding(.top, -8)
-                
-                // Hero image - larger and more prominent
-                Image("header_photo")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 280)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                
-                Text("Shop all of our latest products")
-                    .font(.system(size: 18, weight: .light, design: .serif))
-                    .foregroundStyle(.nyGray)
-                    .italic()
-                    .padding(.top, 12)
-                
-                Button {
-                    selectedTab = .shop
-                } label: {
-                    Text("Shop Now")
-                        .font(.system(size: 17, weight: .medium, design: .serif))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 50)
-                        .padding(.vertical, 16)
-                        .background(Color.nyBlack)
-                        .cornerRadius(10)
+        ZStack(alignment: .bottom) {
+            // Auto-rotating imagery
+            TabView(selection: $heroIndex) {
+                ForEach(heroImages.indices, id: \.self) { index in
+                    Image(heroImages[index])
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: heroHeight)
+                        .clipped()
+                        .tag(index)
                 }
-                .padding(.top, 8)
-                .padding(.bottom, 40)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: heroHeight)
+
+            // Darken top (for toolbar icons) + bottom (for text), then feather into the page.
+            LinearGradient(
+                colors: [.black.opacity(0.30), .clear, .black.opacity(0.10), .black.opacity(0.60)],
+                startPoint: .top, endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+
+            LinearGradient(
+                colors: [.clear, .clear, .clear, Color.nyWhite],
+                startPoint: .top, endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+
+            heroOverlay
+        }
+        .frame(height: heroHeight)
+        .onReceive(heroTimer) { _ in
+            withAnimation(.easeInOut(duration: 0.9)) {
+                heroIndex = (heroIndex + 1) % heroImages.count
             }
         }
-        .frame(maxWidth: .infinity)
+    }
+
+    private var heroOverlay: some View {
+        VStack(spacing: 10) {
+            Text("Naturally Yours")
+                .font(.custom("Zapfino", size: 38))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.4), radius: 10)
+                .shadow(color: .black.opacity(0.25), radius: 3)
+
+            Text("BEAUTY SUPPLY")
+                .font(.system(size: 13, weight: .semibold, design: .serif))
+                .tracking(6)
+                .foregroundStyle(.white.opacity(0.95))
+                .shadow(color: .black.opacity(0.4), radius: 6)
+
+            Text("Premium care, made for natural hair")
+                .font(.system(size: 15, weight: .regular, design: .serif))
+                .italic()
+                .foregroundStyle(.white.opacity(0.92))
+                .shadow(color: .black.opacity(0.5), radius: 6)
+                .padding(.top, 2)
+
+            Button {
+                selectedTab = .shop
+            } label: {
+                Text("Shop Now")
+                    .font(.system(size: 16, weight: .semibold, design: .serif))
+                    .tracking(1)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 44)
+                    .padding(.vertical, 15)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.nyPink, Color(red: 0.85, green: 0.28, blue: 0.5)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: Color.nyPink.opacity(0.5), radius: 12, y: 6)
+            }
+            .padding(.top, 6)
+
+            // Page indicator
+            HStack(spacing: 6) {
+                ForEach(heroImages.indices, id: \.self) { index in
+                    Capsule()
+                        .fill(Color.white.opacity(index == heroIndex ? 1 : 0.45))
+                        .frame(width: index == heroIndex ? 20 : 6, height: 6)
+                        .animation(.easeInOut, value: heroIndex)
+                }
+            }
+            .padding(.top, 10)
+        }
+        .padding(.bottom, 44)
+    }
+
+    /// A toolbar icon with a soft material backdrop so it stays legible over hero imagery.
+    private func toolbarIcon(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(.nyBlack)
+            .frame(width: 38, height: 38)
+            .background(.ultraThinMaterial, in: Circle())
+            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
     }
     
     // MARK: - Featured Best Sellers Section
@@ -181,11 +236,10 @@ struct HomeView: View {
     @ViewBuilder
     private var featuredBestSellersSection: some View {
         if !featured.isEmpty {
-            VStack(spacing: 20) {
-                Text("FEATURED BEST SELLERS")
-                    .font(.nyHeading(24))
-                    .foregroundStyle(.nyBlack)
-                    .padding(.top, 40)
+            VStack(spacing: 18) {
+                SectionHeader(title: "Featured Best Sellers",
+                              subtitle: "Our most-loved picks")
+                    .padding(.top, 28)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
@@ -209,10 +263,9 @@ struct HomeView: View {
     @ViewBuilder
     private var collectionsSection: some View {
         if !productService.categories.isEmpty {
-            VStack(spacing: 20) {
-                Text("SHOP BY COLLECTION")
-                    .font(.nyHeading(24))
-                    .foregroundStyle(.nyBlack)
+            VStack(spacing: 18) {
+                SectionHeader(title: "Shop by Collection",
+                              subtitle: "Find your routine")
                     .padding(.top, 20)
 
                 LazyVGrid(columns: [
@@ -240,12 +293,11 @@ struct HomeView: View {
     // MARK: - Featured Brands Section
     
     private var featuredBrandsSection: some View {
-        VStack(spacing: 20) {
-            Text("FEATURED BRANDS")
-                .font(.nyHeading(24))
-                .foregroundStyle(.nyBlack)
+        VStack(spacing: 18) {
+            SectionHeader(title: "Featured Brands",
+                          subtitle: "The names you trust")
                 .padding(.top, 20)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 20) {
                     ForEach(FeaturedBrand.sampleData) { brand in
@@ -261,12 +313,11 @@ struct HomeView: View {
     // MARK: - Testimonials Section
     
     private var testimonialsSection: some View {
-        VStack(spacing: 20) {
-            Text("CUSTOMER TESTIMONIALS")
-                .font(.nyHeading(24))
-                .foregroundStyle(.nyBlack)
+        VStack(spacing: 18) {
+            SectionHeader(title: "Loved by Our Customers",
+                          subtitle: "Real results, real reviews")
                 .padding(.top, 20)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(CustomerTestimonial.sampleData) { testimonial in
@@ -282,25 +333,26 @@ struct HomeView: View {
     // MARK: - Newsletter Section
     
     private var newsletterSection: some View {
-        VStack(spacing: 20) {
-            Text("JOIN OUR MAILING LIST")
-                .font(.nyHeading(24))
+        VStack(spacing: 14) {
+            Text("Join Our Mailing List")
+                .font(.system(size: 22, weight: .semibold, design: .serif))
                 .foregroundStyle(.nyBlack)
-            
-            Text("Get exclusive offers and updates")
-                .font(.nyBody(16))
+
+            Text("Exclusive offers, new arrivals, and hair-care tips.")
+                .font(.nyBody(14))
                 .foregroundStyle(.nyGray)
-            
-            HStack(spacing: 12) {
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 10) {
                 TextField("Enter your email", text: $emailForNewsletter)
                     .textFieldStyle(.plain)
                     .font(.nyBody(15))
                     .padding()
-                    .background(Color.nyLightGray)
-                    .cornerRadius(8)
+                    .background(Color.nyWhite)
+                    .cornerRadius(12)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
-                
+
                 Button {
                     subscribeToNewsletter()
                 } label: {
@@ -308,16 +360,28 @@ struct HomeView: View {
                         .font(.nyBody(15))
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, 22)
                         .padding(.vertical, 16)
-                        .background(Color.nyPink)
-                        .cornerRadius(8)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.nyPink, Color(red: 0.85, green: 0.28, blue: 0.5)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                        .cornerRadius(12)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.top, 4)
         }
-        .padding(.vertical, 40)
-        .background(Color.nySoftPink)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 36)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.nySoftPink, Color.nyLightPink.opacity(0.7)],
+                startPoint: .top, endPoint: .bottom
+            )
+        )
     }
     
     // MARK: - Helper Methods
@@ -434,6 +498,37 @@ struct CollectionCard: View {
         .background(Color.nyWhite)
         .cornerRadius(12)
         .nyCardShadow()
+    }
+}
+
+// MARK: - Section Header
+
+/// A refined, reusable section header: a serif title with an optional subtitle and a
+/// small pink accent underline — used across the Home screen for a cohesive, elevated look.
+struct SectionHeader: View {
+    let title: String
+    var subtitle: String? = nil
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Text(title)
+                .font(.system(size: 23, weight: .semibold, design: .serif))
+                .foregroundStyle(.nyBlack)
+                .multilineTextAlignment(.center)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.nyCaption(13))
+                    .foregroundStyle(.nyGray)
+            }
+
+            Capsule()
+                .fill(Color.nyPink)
+                .frame(width: 44, height: 3)
+                .padding(.top, 3)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
     }
 }
 
