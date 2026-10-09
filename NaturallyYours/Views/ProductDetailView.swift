@@ -31,8 +31,9 @@ struct ProductDetailView: View {
                         .tracking(1)
 
                     Text(product.name)
-                        .font(.nyHeading(24))
+                        .font(.system(size: 26, weight: .semibold, design: .serif))
                         .foregroundStyle(.nyBlack)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     priceRow
 
@@ -122,10 +123,10 @@ struct ProductDetailView: View {
     // MARK: - Info rows
 
     private var priceRow: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(product.formattedPrice)
-                .font(.nyHeading(26))
-                .foregroundStyle(.nyBlack)
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundStyle(product.onSale ? .nyPink : .nyBlack)
 
             if product.onSale {
                 Text(product.formattedOriginalPrice)
@@ -135,11 +136,11 @@ struct ProductDetailView: View {
 
                 Text("SALE")
                     .font(.system(size: 11, weight: .bold))
+                    .tracking(0.5)
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.nyPink)
-                    .cornerRadius(4)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(LinearGradient.nyBrand))
             }
         }
     }
@@ -191,14 +192,20 @@ struct ProductDetailView: View {
                         ProgressView().tint(.white)
                     } else {
                         Text(product.inStock ? "Add to Cart" : "Sold Out")
-                            .fontWeight(.semibold)
+                            .font(.system(size: 16, weight: .semibold, design: .serif))
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(product.inStock ? Color.nyPink : Color.nyGray)
+                .padding(.vertical, 15)
+                .background {
+                    if product.inStock {
+                        Capsule().fill(LinearGradient.nyBrand)
+                    } else {
+                        Capsule().fill(Color.nyGray)
+                    }
+                }
                 .foregroundStyle(.white)
-                .cornerRadius(10)
+                .shadow(color: product.inStock ? Color.nyPink.opacity(0.35) : .clear, radius: 8, y: 4)
             }
             .disabled(!product.inStock || isAddingToCart)
         }

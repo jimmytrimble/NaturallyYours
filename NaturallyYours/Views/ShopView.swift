@@ -42,7 +42,7 @@ struct ShopView: View {
             }
         }
         .background(Color.nyWhite)
-        .navigationTitle("Shop")
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search products")
         .onChange(of: searchText) { _, _ in
@@ -61,6 +61,10 @@ struct ShopView: View {
 
     private var content: some View {
         ScrollView {
+            NYScreenTitle(title: "Shop", subtitle: "Find your next favorite")
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
             if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
                 categoryChips
             }
@@ -111,9 +115,14 @@ struct ShopView: View {
                 .fontWeight(isSelected ? .semibold : .regular)
                 .foregroundStyle(isSelected ? .white : .nyBlack)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.nyPink : Color.nyLightGray)
-                .clipShape(Capsule())
+                .padding(.vertical, 9)
+                .background {
+                    if isSelected {
+                        Capsule().fill(LinearGradient.nyBrand)
+                    } else {
+                        Capsule().fill(Color.nyLightGray)
+                    }
+                }
         }
         .buttonStyle(.plain)
     }
@@ -168,9 +177,9 @@ struct ShopProductCard: View {
     let product: CatalogProduct
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 12)
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color.nyLightGray)
                     .aspectRatio(1, contentMode: .fit)
                     .overlay {
@@ -191,32 +200,33 @@ struct ShopProductCard: View {
                             }
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 if product.onSale {
-                    badge("SALE")
+                    badge("SALE", gradient: true)
                 } else if !product.inStock {
-                    badge("SOLD OUT")
+                    badge("SOLD OUT", gradient: false)
                 }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(product.category)
-                    .font(.nyCaption(12))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(product.category.uppercased())
+                    .font(.system(size: 10, weight: .semibold))
+                    .tracking(1)
                     .foregroundStyle(.nyGray)
 
                 Text(product.name)
-                    .font(.nyBody(15))
+                    .font(.nyBody(14))
                     .foregroundStyle(.nyBlack)
                     .fontWeight(.semibold)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
+                    .frame(minHeight: 36, alignment: .top)
 
-                HStack(spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(product.formattedPrice)
-                        .font(.nySubheading(17))
-                        .foregroundStyle(.nyBlack)
-                        .fontWeight(.bold)
+                        .font(.system(size: 17, weight: .bold, design: .serif))
+                        .foregroundStyle(product.onSale ? .nyPink : .nyBlack)
 
                     if product.onSale {
                         Text(product.formattedOriginalPrice)
@@ -226,10 +236,12 @@ struct ShopProductCard: View {
                     }
                 }
             }
+            .padding(.horizontal, 4)
+            .padding(.bottom, 4)
         }
-        .padding(12)
+        .padding(10)
         .background(Color.nyWhite)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .nyCardShadow()
     }
 
@@ -239,15 +251,21 @@ struct ShopProductCard: View {
             .foregroundStyle(.nyGray.opacity(0.3))
     }
 
-    private func badge(_ text: String) -> some View {
+    private func badge(_ text: String, gradient: Bool) -> some View {
         Text(text)
             .font(.system(size: 10, weight: .bold))
+            .tracking(0.5)
             .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.nyPink)
-            .cornerRadius(4)
-            .padding(8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background {
+                if gradient {
+                    Capsule().fill(LinearGradient.nyBrand)
+                } else {
+                    Capsule().fill(Color.nyBlack.opacity(0.75))
+                }
+            }
+            .padding(10)
     }
 }
 
