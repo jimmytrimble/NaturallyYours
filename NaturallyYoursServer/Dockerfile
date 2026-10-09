@@ -49,6 +49,9 @@ RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./
 RUN [ -d /build/Public ] && { mv /build/Public ./Public && chmod -R a-w ./Public; } || true
 RUN [ -d /build/Resources ] && { mv /build/Resources ./Resources && chmod -R a-w ./Resources; } || true
 
+# Copy the catalog seed data (imported on first run when the products table is empty).
+RUN [ -d /build/SeedData ] && { mv /build/SeedData ./SeedData && chmod -R a-w ./SeedData; } || true
+
 # ================================
 # Run image
 # ================================
@@ -83,9 +86,9 @@ ENV SWIFT_BACKTRACE=enable=yes,sanitize=yes,threads=all,images=all,interactive=n
 # Ensure all further commands run as the vapor user
 USER vapor:vapor
 
-# Let Docker bind to port 8080
+# Render routes traffic to the port given by $PORT; the app reads it in configure.swift.
 EXPOSE 8080
 
-# Start the Vapor service when the image is run, default to listening on 8080 in production environment
+# Start the Vapor service. Host/port come from configure.swift (0.0.0.0 + $PORT).
 ENTRYPOINT ["./NaturallyYoursServer"]
-CMD ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+CMD ["serve", "--env", "production"]

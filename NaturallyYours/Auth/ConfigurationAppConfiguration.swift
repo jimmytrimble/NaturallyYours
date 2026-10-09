@@ -37,8 +37,10 @@ enum AppConfiguration {
             // return "http://192.168.1.5:8081"
             
         case .production:
-            // Replace with your production server URL
-            return "https://api.naturallyyours.com"
+            // Render web service URL. Update this to the exact URL Render assigns your
+            // service after the first deploy (Dashboard → your service → top of page),
+            // then attach your custom domain if desired.
+            return "https://naturallyyours-server.onrender.com"
         }
     }
     
