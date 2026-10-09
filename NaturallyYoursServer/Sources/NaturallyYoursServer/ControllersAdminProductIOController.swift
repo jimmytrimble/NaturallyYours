@@ -21,7 +21,11 @@ struct AdminProductIOController: RouteCollection {
     /// endpoint hides). Optional `?active=true|false` filters by active state.
     func listAllProducts(req: Request) async throws -> [ProductDTO] {
         var query = Product.query(on: req.db).sort(\.$name)
-        if let active = req.query[Bool.self, at: "active"] {
+        // Parse as an optional String so an absent `active` param means "no filter".
+        // (Decoding directly as Bool yields `false` when absent, which wrongly hides
+        // all active products.)
+        if let raw = req.query[String.self, at: "active"] {
+            let active = (raw == "true" || raw == "1")
             query = query.filter(\.$isActive == active)
         }
         return try await query.all().map { $0.toDTO() }
