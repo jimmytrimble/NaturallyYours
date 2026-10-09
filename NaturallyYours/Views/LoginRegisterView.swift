@@ -46,6 +46,7 @@ struct LoginView: View {
                     loginForm
                 }
             }
+            .ignoresSafeArea(edges: .top)
         }
         .alert("Login Failed", isPresented: $showError) {
             Button("OK") { showError = false }
@@ -61,7 +62,7 @@ struct LoginView: View {
             Image("login_hero")
                 .resizable()
                 .scaledToFill()
-                .frame(height: 460)
+                .frame(height: 400)
                 .frame(maxWidth: .infinity)
                 .clipped()
                 // Feather both the top and bottom edges so the photo melts into the
@@ -91,7 +92,7 @@ struct LoginView: View {
             }
             .padding(.bottom, 28)
         }
-        .frame(height: 440)
+        .frame(height: 400)
     }
 
     // MARK: - Form
