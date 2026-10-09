@@ -159,26 +159,39 @@ extension FeaturedProduct {
 }
 
 extension FeaturedBrand {
+    // `logoImageName` is the asset name the card will use if a matching image exists in
+    // the asset catalog; otherwise the card falls back to a styled monogram badge. Drop
+    // official logo PNGs in with these names to light them up automatically.
     static let sampleData: [FeaturedBrand] = [
         FeaturedBrand(
-            name: "Naturally Yours",
-            logoImageName: "brand_ny",
-            description: "Premium natural hair care"
+            name: "Annie",
+            logoImageName: "brand_annie",
+            description: "Hair accessories & styling tools"
         ),
         FeaturedBrand(
-            name: "Shea Moisture",
-            logoImageName: "brand_shea",
-            description: "Nourishing formulas"
+            name: "G Series",
+            logoImageName: "brand_g_series",
+            description: "Professional hair care"
         ),
         FeaturedBrand(
-            name: "Cantu",
-            logoImageName: "brand_cantu",
-            description: "Quality hair products"
+            name: "Naked",
+            logoImageName: "brand_naked",
+            description: "Honey & almond moisture"
         ),
         FeaturedBrand(
-            name: "Mielle",
-            logoImageName: "brand_mielle",
-            description: "Organic ingredients"
+            name: "Design Essentials",
+            logoImageName: "brand_design_essentials",
+            description: "Salon-quality textured hair care"
+        ),
+        FeaturedBrand(
+            name: "Nairobi",
+            logoImageName: "brand_nairobi",
+            description: "Professional hair care"
+        ),
+        FeaturedBrand(
+            name: "Essations",
+            logoImageName: "brand_essations",
+            description: "Professional hair & skin care"
         )
     ]
 }

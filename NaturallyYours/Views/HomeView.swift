@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     @ObservedObject var authService: AuthService
@@ -504,25 +505,47 @@ struct HomeCollectionTile: View {
 
 struct BrandCard: View {
     let brand: FeaturedBrand
-    
+
+    /// Initials used for the fallback brand mark (e.g. "Design Essentials" → "DE").
+    private var monogram: String {
+        let words = brand.name.split(separator: " ")
+        if words.count >= 2 {
+            return words.prefix(2).compactMap { $0.first }.map(String.init).joined().uppercased()
+        }
+        return String(brand.name.prefix(2)).uppercased()
+    }
+
     var body: some View {
         VStack(spacing: 12) {
-            // Brand Logo
             Circle()
                 .fill(Color.nyWhite)
                 .frame(width: 100, height: 100)
                 .overlay {
-                    Image(systemName: "tag.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.nyPink)
-                    // Replace with: Image(brand.logoImageName)
+                    // Use the official logo if one has been added to the asset catalog,
+                    // otherwise show a clean monogram badge.
+                    if UIImage(named: brand.logoImageName) != nil {
+                        Image(brand.logoImageName)
+                            .resizable()
+                            .scaledToFit()
+                            .padding(18)
+                            .clipShape(Circle())
+                    } else {
+                        Text(monogram)
+                            .font(.system(size: 30, weight: .semibold, design: .serif))
+                            .foregroundStyle(.nyPink)
+                    }
                 }
+                .overlay(
+                    Circle().stroke(Color.nyLightPink, lineWidth: 1.5)
+                )
                 .nyElevationShadow()
-            
+
             Text(brand.name)
                 .font(.nyBody(15))
                 .foregroundStyle(.nyBlack)
                 .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
         .frame(width: 120)
     }
