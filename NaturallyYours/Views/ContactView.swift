@@ -89,12 +89,23 @@ struct ContactView: View {
 
 // MARK: - Compose
 
+/// Inquiry topics, mirroring the categories on the Naturally Yours website contact form.
+enum InquiryTopic: String, CaseIterable, Identifiable {
+    case productBrand = "Product & Brand Inquiry"
+    case order = "Order Inquiry"
+    case job = "Job Inquiry"
+    case vending = "Vending Machine Support"
+    case general = "General Question / Other"
+
+    var id: String { rawValue }
+}
+
 struct ComposeMessageView: View {
     @Environment(MessagingService.self) private var messaging
     @EnvironmentObject private var authService: AuthService
     @Environment(\.dismiss) private var dismiss
 
-    @State private var subject = ""
+    @State private var topic: InquiryTopic = .productBrand
     @State private var messageBody = ""
     @State private var guestName = ""
     @State private var guestEmail = ""
@@ -122,8 +133,12 @@ struct ComposeMessageView: View {
                             .keyboardType(.emailAddress)
                     }
                 }
-                Section("Subject") {
-                    TextField("What's this about?", text: $subject)
+                Section("Topic") {
+                    Picker("What's this about?", selection: $topic) {
+                        ForEach(InquiryTopic.allCases) { topic in
+                            Text(topic.rawValue).tag(topic)
+                        }
+                    }
                 }
                 Section("Message") {
                     TextField("Type your message…", text: $messageBody, axis: .vertical)
@@ -154,7 +169,7 @@ struct ComposeMessageView: View {
         Task {
             do {
                 _ = try await messaging.startConversation(
-                    subject: subject,
+                    subject: topic.rawValue,
                     message: messageBody,
                     name: isGuest ? guestName : nil,
                     email: isGuest ? guestEmail : nil

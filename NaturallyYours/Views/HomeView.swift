@@ -6,6 +6,7 @@ struct HomeView: View {
     @Environment(ProductService.self) private var productService
     @State private var emailForNewsletter = ""
     @State private var showingNewsletterSuccess = false
+    @State private var showingContact = false
 
     /// Live "best sellers": on-sale products first, otherwise the newest arrivals.
     private var featured: [CatalogProduct] {
@@ -58,32 +59,53 @@ struct HomeView: View {
                 
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
-                        Button {
-                            // Profile action
-                        } label: {
-                            Label("Profile", systemImage: "person")
-                        }
-                        
-                        Button {
-                            // Orders action
-                        } label: {
-                            Label("Orders", systemImage: "bag")
-                        }
-                        
-                        Divider()
-                        
-                        Button(role: .destructive) {
-                            Task {
-                                try? await authService.logout()
+                        if authService.isAuthenticated {
+                            Button {
+                                selectedTab = .account
+                            } label: {
+                                Label("Profile", systemImage: "person")
                             }
+
+                            Button {
+                                selectedTab = .account
+                            } label: {
+                                Label("Orders", systemImage: "bag")
+                            }
+                        }
+
+                        Button {
+                            showingContact = true
                         } label: {
-                            Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            Label("Contact Us", systemImage: "envelope")
+                        }
+
+                        Divider()
+
+                        if authService.isAuthenticated {
+                            Button(role: .destructive) {
+                                Task { try? await authService.logout() }
+                            } label: {
+                                Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            }
+                        } else {
+                            Button {
+                                // Return to the login screen (guest has no server session).
+                                authService.isGuest = false
+                                authService.isAuthenticated = false
+                                authService.currentUser = nil
+                            } label: {
+                                Label("Log In", systemImage: "rectangle.portrait.and.arrow.right")
+                            }
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal")
                             .foregroundStyle(.nyBlack)
                     }
                 }
+            }
+            .sheet(isPresented: $showingContact) {
+                ContactView()
+                    .environmentObject(authService)
             }
             .toolbarBackground(.hidden, for: .navigationBar)
             .alert("Thank You!", isPresented: $showingNewsletterSuccess) {

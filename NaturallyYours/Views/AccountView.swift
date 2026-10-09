@@ -8,6 +8,7 @@ struct AccountView: View {
 
     @State private var orderService = OrderService()
     @State private var showAdmin = false
+    @State private var showContact = false
 
     var body: some View {
         NavigationStack {
@@ -33,6 +34,10 @@ struct AccountView: View {
             }
             .fullScreenCover(isPresented: $showAdmin) {
                 AdminGateView()
+            }
+            .sheet(isPresented: $showContact) {
+                ContactView()
+                    .environmentObject(authService)
             }
         }
     }
@@ -121,6 +126,12 @@ struct AccountView: View {
 
     private var supportSection: some View {
         Section("Support") {
+            Button {
+                showContact = true
+            } label: {
+                Label("Contact Us", systemImage: "envelope")
+                    .foregroundStyle(.nyBlack)
+            }
             NavigationLink {
                 AboutView()
             } label: {
