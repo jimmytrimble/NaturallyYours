@@ -75,6 +75,38 @@ struct MessagingController: RouteCollection {
 
         req.logger.info("New conversation \(conversation.id?.uuidString ?? "?") from \(email)")
 
+        // Notify the support team of the new inquiry (best-effort; no-op if SMTP unset).
+        // Reply-To is set to the customer so the team can respond straight from Zoho.
+        if let emailConfig = EmailConfiguration.fromEnvironment() {
+            let service = EmailService(config: emailConfig, logger: req.logger)
+            let notifySubject = "New inquiry: \(conversation.subject)"
+            let notifyBody = """
+            A new contact inquiry was submitted in the Naturally Yours app.
+
+            Name:  \(name)
+            Email: \(email)
+            Topic: \(conversation.subject)
+
+            Message:
+            \(data.message)
+
+            —
+            Reply in the admin app, or just reply to this email to respond to the customer.
+            """
+            do {
+                try await service.send(
+                    to: emailConfig.fromEmail,
+                    name: emailConfig.fromName,
+                    subject: notifySubject,
+                    body: notifyBody,
+                    replyTo: email
+                )
+                req.logger.info("New-inquiry notification emailed to \(emailConfig.fromEmail)")
+            } catch {
+                req.logger.error("Failed to email new-inquiry notification: \(String(reflecting: error))")
+            }
+        }
+
         try await loadMessagesSorted(conversation, on: req.db)
         return conversation.toDTO(includeMessages: true)
     }

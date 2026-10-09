@@ -15,8 +15,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.0"),
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
-        // ✉️ SMTP client for sending support reply emails via Zoho Mail.
-        .package(url: "https://github.com/Kitura/Swift-SMTP.git", from: "6.0.0"),
+        // 🔐 TLS for the SMTP client (same stack Vapor uses; works on macOS + Linux).
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.25.0"),
     ],
     targets: [
         .executableTarget(
@@ -27,7 +27,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
-                .product(name: "SwiftSMTP", package: "Swift-SMTP"),
+                .product(name: "NIOSSL", package: "swift-nio-ssl"),
             ],
             swiftSettings: swiftSettings
         ),
