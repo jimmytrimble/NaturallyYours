@@ -31,8 +31,9 @@ enum AppConfiguration {
         case .development:
             // For iOS Simulator. Port 8081 because 8080 is taken by another app
             // on the dev Mac — keep this in sync with the port the Vapor server runs on.
-            return "http://localhost:8081"
-
+//            return "http://localhost:8081"
+            return "https://naturallyyours-server.onrender.com"
+                
             // For physical device on same network, uncomment and use your Mac's IP:
             // return "http://192.168.1.5:8081"
             
