@@ -33,9 +33,14 @@ struct CatalogProduct: Identifiable, Decodable, Hashable {
     let inStock: Bool
     let onSale: Bool
     let isActive: Bool
+    /// Optional so the app still decodes against a server that predates the field.
+    let isFeatured: Bool?
     let imageURLs: [String]
     let sku: String?
     let tags: [String]
+
+    /// Whether this product is in the featured best-sellers rail.
+    var featured: Bool { isFeatured ?? false }
 
     /// Resolved URL for the first image (handles both absolute CDN URLs and
     /// server-relative upload paths).

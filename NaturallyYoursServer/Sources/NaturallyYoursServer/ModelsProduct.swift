@@ -30,7 +30,11 @@ final class Product: Model, @unchecked Sendable {
     
     @Field(key: "is_active")
     var isActive: Bool
-    
+
+    /// Whether the product is highlighted in the "Featured Best Sellers" rail.
+    @Field(key: "is_featured")
+    var isFeatured: Bool
+
     // Product images stored as an array of URLs
     @Field(key: "image_urls")
     var imageURLs: [String]
@@ -69,6 +73,7 @@ final class Product: Model, @unchecked Sendable {
         category: String,
         stockQuantity: Int,
         isActive: Bool = true,
+        isFeatured: Bool = false,
         imageURLs: [String] = [],
         sku: String? = nil,
         weight: Double? = nil,
@@ -82,6 +87,7 @@ final class Product: Model, @unchecked Sendable {
         self.category = category
         self.stockQuantity = stockQuantity
         self.isActive = isActive
+        self.isFeatured = isFeatured
         self.imageURLs = imageURLs
         self.sku = sku
         self.weight = weight
@@ -122,6 +128,7 @@ extension Product {
             inStock: self.inStock,
             onSale: self.onSale,
             isActive: self.isActive,
+            isFeatured: self.isFeatured,
             imageURLs: self.imageURLs,
             sku: self.sku,
             weight: self.weight,
@@ -145,6 +152,7 @@ struct ProductDTO: Content {
     let inStock: Bool
     let onSale: Bool
     let isActive: Bool
+    let isFeatured: Bool
     let imageURLs: [String]
     let sku: String?
     let weight: Double?
@@ -182,6 +190,7 @@ struct UpdateProductRequest: Content {
     let category: String?
     let stockQuantity: Int?
     let isActive: Bool?
+    let isFeatured: Bool?
     let imageURLs: [String]?
     let sku: String?
     let weight: Double?

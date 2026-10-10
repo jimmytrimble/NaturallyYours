@@ -16,8 +16,12 @@ struct HomeView: View {
     private let heroImages = ["header_photo", "hero_portrait_1", "hero_portrait_2", "hero_portrait_3"]
     private let heroTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
-    /// Live "best sellers": on-sale products first, otherwise the newest arrivals.
+    /// Best sellers: the admin-curated featured list when set; otherwise a sensible
+    /// fallback (on-sale items first, then newest) so the rail is never empty.
     private var featured: [CatalogProduct] {
+        if !productService.featuredProducts.isEmpty {
+            return productService.featuredProducts
+        }
         let sale = productService.products.filter { $0.onSale && $0.inStock }
         let base = sale.isEmpty ? productService.products : sale
         return Array(base.prefix(8))
@@ -54,7 +58,10 @@ struct HomeView: View {
             .navigationDestination(for: CatalogProduct.self) { product in
                 ProductDetailView(product: product)
             }
-            .task { await productService.loadProducts() }
+            .task {
+                await productService.loadProducts()
+                await productService.loadFeatured()
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

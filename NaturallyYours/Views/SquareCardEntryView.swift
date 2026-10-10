@@ -138,8 +138,13 @@ private struct SquareWebView: UIViewRepresentable {
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
           <script src="\(sdkURL)"></script>
           <style>
+            :root { color-scheme: light dark; }
             * { box-sizing: border-box; -webkit-user-select: none; }
-            body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; background: #fff; color: #262626; }
+            body {
+              font-family: -apple-system, system-ui, sans-serif;
+              margin: 0; padding: 20px;
+              background: #ffffff; color: #262626;
+            }
             #card-container { margin-bottom: 20px; min-height: 90px; }
             #pay-button {
               width: 100%; padding: 16px; font-size: 17px; font-weight: 600;
@@ -147,6 +152,12 @@ private struct SquareWebView: UIViewRepresentable {
             }
             #pay-button:disabled { background: #cccccc; opacity: 0.6; }
             #status { margin-top: 12px; color: #E54D4D; font-size: 14px; min-height: 18px; }
+
+            /* Follow the device appearance so the sheet isn't a white flash in dark mode. */
+            @media (prefers-color-scheme: dark) {
+              body { background: #1c1c1e; color: #f2f2f7; }
+              #pay-button:disabled { background: #3a3a3c; }
+            }
           </style>
         </head>
         <body>
@@ -162,7 +173,15 @@ private struct SquareWebView: UIViewRepresentable {
               let payments, card;
               try {
                 payments = window.Square.payments('\(config.applicationID)', '\(config.locationID)');
-                card = await payments.card();
+                const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const cardStyle = dark ? {
+                  input: { color: '#f2f2f7', backgroundColor: '#2c2c2e' },
+                  'input::placeholder': { color: '#8e8e93' }
+                } : {
+                  input: { color: '#262626', backgroundColor: '#ffffff' },
+                  'input::placeholder': { color: '#8e8e93' }
+                };
+                card = await payments.card({ style: cardStyle });
                 await card.attach('#card-container');
               } catch (e) {
                 post({ error: 'Could not initialize payments: ' + (e.message || e) });

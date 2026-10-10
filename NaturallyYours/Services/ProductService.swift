@@ -6,6 +6,7 @@ import Observation
 @Observable
 final class ProductService {
     var products: [CatalogProduct] = []
+    var featuredProducts: [CatalogProduct] = []
     var isLoading = false
     var errorMessage: String?
 
@@ -44,6 +45,12 @@ final class ProductService {
             errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
         isLoading = false
+    }
+
+    /// Loads the admin-curated featured best-sellers from `GET /api/products/featured`.
+    func loadFeatured(force: Bool = false) async {
+        if !force && !featuredProducts.isEmpty { return }
+        featuredProducts = (try? await client.get("/api/products/featured")) ?? []
     }
 
     /// Fetches a single product by id from `GET /api/products/:id`.

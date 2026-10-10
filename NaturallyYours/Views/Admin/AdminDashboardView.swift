@@ -63,6 +63,7 @@ struct AdminInventoryView: View {
     @State private var isLoading = false
     @State private var searchText = ""
     @State private var showNewProduct = false
+    @State private var showFeatured = false
     @State private var showImporter = false
     @State private var exportDocument: CSVDocument?
     @State private var showExporter = false
@@ -117,6 +118,10 @@ struct AdminInventoryView: View {
                         showNewProduct = true
                     } label: { Label("New Product", systemImage: "plus") }
 
+                    Button {
+                        showFeatured = true
+                    } label: { Label("Manage Featured", systemImage: "star") }
+
                     if adminService.canManageCatalog {
                         Button {
                             showImporter = true
@@ -136,6 +141,10 @@ struct AdminInventoryView: View {
                 AdminProductEditView(mode: .create, onChange: handleChange)
             }
             .environment(adminService)
+        }
+        .sheet(isPresented: $showFeatured, onDismiss: { Task { await load() } }) {
+            AdminFeaturedView()
+                .environment(adminService)
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
             handleImport(result)

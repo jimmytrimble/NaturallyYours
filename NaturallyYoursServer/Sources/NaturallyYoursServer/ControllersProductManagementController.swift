@@ -8,6 +8,7 @@ struct ProductManagementController: RouteCollection {
         
         // Public routes (anyone can view products)
         products.get(use: listProducts)
+        products.get("featured", use: featuredProducts)
         products.get(":productID", use: getProduct)
         products.get("category", ":category", use: getProductsByCategory)
         products.get("search", use: searchProducts)
@@ -26,6 +27,8 @@ struct ProductManagementController: RouteCollection {
         adminProtected.patch(":productID", "images", use: updateImages)
         adminProtected.post(":productID", "activate", use: activateProduct)
         adminProtected.post(":productID", "deactivate", use: deactivateProduct)
+        adminProtected.post(":productID", "feature", use: featureProduct)
+        adminProtected.post(":productID", "unfeature", use: unfeatureProduct)
     }
     
     // MARK: - Public Routes
@@ -53,6 +56,16 @@ struct ProductManagementController: RouteCollection {
         return product.toDTO()
     }
     
+    /// List the active products marked as featured (for the Home "Best Sellers" rail).
+    func featuredProducts(req: Request) async throws -> [ProductDTO] {
+        let products = try await Product.query(on: req.db)
+            .filter(\.$isFeatured == true)
+            .filter(\.$isActive == true)
+            .sort(\.$name)
+            .all()
+        return products.map { $0.toDTO() }
+    }
+
     /// Get products by category
     func getProductsByCategory(req: Request) async throws -> [ProductDTO] {
         guard let category = req.parameters.get("category") else {
@@ -134,6 +147,7 @@ struct ProductManagementController: RouteCollection {
         if let category = updateData.category { product.category = category }
         if let stockQuantity = updateData.stockQuantity { product.stockQuantity = stockQuantity }
         if let isActive = updateData.isActive { product.isActive = isActive }
+        if let isFeatured = updateData.isFeatured { product.isFeatured = isFeatured }
         if let imageURLs = updateData.imageURLs { product.imageURLs = imageURLs }
         if let sku = updateData.sku { product.sku = sku }
         if let weight = updateData.weight { product.weight = weight }
@@ -286,9 +300,33 @@ struct ProductManagementController: RouteCollection {
         
         product.isActive = false
         try await product.save(on: req.db)
-        
+
         req.logger.info("Admin \(admin.email) deactivated product: \(product.name)")
-        
+
+        return product.toDTO()
+    }
+
+    /// Add a product to the featured best-sellers rail (admin only).
+    func featureProduct(req: Request) async throws -> ProductDTO {
+        try await setFeatured(req: req, featured: true)
+    }
+
+    /// Remove a product from the featured best-sellers rail (admin only).
+    func unfeatureProduct(req: Request) async throws -> ProductDTO {
+        try await setFeatured(req: req, featured: false)
+    }
+
+    private func setFeatured(req: Request, featured: Bool) async throws -> ProductDTO {
+        let admin = try req.auth.require(Admin.self)
+        guard let productID = req.parameters.get("productID", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "Invalid product ID")
+        }
+        guard let product = try await Product.find(productID, on: req.db) else {
+            throw Abort(.notFound, reason: "Product not found")
+        }
+        product.isFeatured = featured
+        try await product.save(on: req.db)
+        req.logger.info("Admin \(admin.email) \(featured ? "featured" : "unfeatured") product: \(product.name)")
         return product.toDTO()
     }
 }

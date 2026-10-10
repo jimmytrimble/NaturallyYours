@@ -77,6 +77,12 @@ final class AdminService {
         return try await client.send("POST", "/api/products/\(id.uuidString)/\(action)")
     }
 
+    /// Adds/removes a product from the featured best-sellers rail.
+    func setFeatured(id: UUID, featured: Bool) async throws -> CatalogProduct {
+        let action = featured ? "feature" : "unfeature"
+        return try await client.send("POST", "/api/products/\(id.uuidString)/\(action)")
+    }
+
     func uploadImage(productID: UUID, data: Data, filename: String, mimeType: String) async throws -> CatalogProduct {
         try await client.uploadMultipart(
             "/api/admin/products/\(productID.uuidString)/images/upload",
