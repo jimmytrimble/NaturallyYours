@@ -131,6 +131,44 @@ final class AdminService {
                               body: UpdateOrderStatusRequest(status: status))
     }
 
+    // MARK: - Vending machines
+
+    func loadVendingMachines() async throws -> [VendingMachine] {
+        try await client.get("/api/admin/vending/machines")
+    }
+
+    func vendingMachine(id: UUID) async throws -> VendingMachine {
+        try await client.get("/api/admin/vending/machines/\(id.uuidString)")
+    }
+
+    @discardableResult
+    func createVendingMachine(_ request: CreateVendingMachineRequest) async throws -> VendingMachine {
+        try await client.send("POST", "/api/admin/vending/machines", body: request)
+    }
+
+    @discardableResult
+    func updateVendingMachine(id: UUID, _ request: UpdateVendingMachineRequest) async throws -> VendingMachine {
+        try await client.send("PATCH", "/api/admin/vending/machines/\(id.uuidString)", body: request)
+    }
+
+    func deleteVendingMachine(id: UUID) async throws {
+        try await client.sendNoContent("DELETE", "/api/admin/vending/machines/\(id.uuidString)")
+    }
+
+    @discardableResult
+    func addVendingSlot(machineID: UUID, _ request: CreateVendingSlotRequest) async throws -> VendingMachine {
+        try await client.send("POST", "/api/admin/vending/machines/\(machineID.uuidString)/slots", body: request)
+    }
+
+    @discardableResult
+    func updateVendingSlot(id: UUID, _ request: UpdateVendingSlotRequest) async throws -> VendingSlot {
+        try await client.send("PATCH", "/api/admin/vending/slots/\(id.uuidString)", body: request)
+    }
+
+    func deleteVendingSlot(id: UUID) async throws {
+        try await client.sendNoContent("DELETE", "/api/admin/vending/slots/\(id.uuidString)")
+    }
+
     // MARK: - Messaging inbox
 
     func loadConversations(status: ConversationStatus? = nil) async throws -> [ConversationDTO] {

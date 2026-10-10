@@ -31,4 +31,5 @@ public func routes(_ app: Application) throws {
     try app.register(collection: MessagingController())
     try app.register(collection: PaymentConfigController())
     try app.register(collection: AdminStatsController())
+    try app.register(collection: VendingController())
 }

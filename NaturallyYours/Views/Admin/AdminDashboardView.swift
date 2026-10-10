@@ -11,6 +11,9 @@ struct AdminDashboardView: View {
             NavigationStack { AdminOrdersView() }
                 .tabItem { Label("Orders", systemImage: "list.bullet.rectangle") }
 
+            NavigationStack { AdminVendingView() }
+                .tabItem { Label("Vending", systemImage: "cabinet") }
+
             NavigationStack { AdminInboxView() }
                 .tabItem { Label("Inbox", systemImage: "tray.full") }
         }

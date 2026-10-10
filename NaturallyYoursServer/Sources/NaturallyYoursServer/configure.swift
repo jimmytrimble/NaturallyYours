@@ -53,6 +53,8 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateFavorite())
     app.migrations.add(CreateOrder())
     app.migrations.add(CreateMessaging())
+    app.migrations.add(CreateVendingMachine())
+    app.migrations.add(CreateVendingSlot())
     
     // Auto-run migrations (remove in production, use vapor run migrate)
      try await app.autoMigrate()

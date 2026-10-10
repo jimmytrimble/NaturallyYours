@@ -108,6 +108,55 @@ struct AdminStats: Decodable {
     let openConversations: Int
 }
 
+// MARK: - Vending machines
+
+struct VendingMachine: Decodable, Identifiable {
+    let id: UUID?
+    let name: String
+    let campus: String
+    let location: String?
+    let slotCount: Int
+    let needsRestockCount: Int
+    let slots: [VendingSlot]
+}
+
+struct VendingSlot: Decodable, Identifiable {
+    let id: UUID?
+    let slotNumber: Int
+    let productName: String
+    let onHand: Int
+    let hold: Int
+
+    /// Empty or nearly empty — worth restocking.
+    var needsRestock: Bool { onHand <= 2 }
+}
+
+struct CreateVendingMachineRequest: Encodable {
+    let name: String
+    let campus: String
+    let location: String?
+}
+
+struct UpdateVendingMachineRequest: Encodable {
+    var name: String?
+    var campus: String?
+    var location: String?
+}
+
+struct CreateVendingSlotRequest: Encodable {
+    let slotNumber: Int
+    let productName: String
+    let onHand: Int
+    let hold: Int
+}
+
+struct UpdateVendingSlotRequest: Encodable {
+    var slotNumber: Int?
+    var productName: String?
+    var onHand: Int?
+    var hold: Int?
+}
+
 // MARK: - Payments
 
 /// Publishable Square client config from `GET /api/payments/config`, used to
