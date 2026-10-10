@@ -262,7 +262,7 @@ struct ShopProductCard: View {
                 if gradient {
                     Capsule().fill(LinearGradient.nyBrand)
                 } else {
-                    Capsule().fill(Color.nyBlack.opacity(0.75))
+                    Capsule().fill(Color.nyInk.opacity(0.75))
                 }
             }
             .padding(10)

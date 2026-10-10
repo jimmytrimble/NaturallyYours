@@ -84,6 +84,11 @@ final class AdminService {
         )
     }
 
+    /// Loads overview counts via `GET /api/admin/stats`.
+    func loadStats() async throws -> AdminStats {
+        try await client.get("/api/admin/stats")
+    }
+
     /// Lists every product including inactive ones via `GET /api/admin/products`.
     /// Pass `active` to filter server-side.
     func loadAllProducts(active: Bool? = nil) async throws -> [CatalogProduct] {

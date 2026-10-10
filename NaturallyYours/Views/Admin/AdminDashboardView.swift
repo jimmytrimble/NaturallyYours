@@ -67,6 +67,7 @@ struct AdminInventoryView: View {
     @State private var exportDocument: CSVDocument?
     @State private var showExporter = false
     @State private var banner: String?
+    @State private var stats: AdminStats?
     @State private var errorMessage: String?
     @State private var showError = false
 
@@ -153,6 +154,11 @@ struct AdminInventoryView: View {
 
     private var listContent: some View {
         List {
+            if let stats {
+                statsStrip(stats)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowSeparator(.hidden)
+            }
             if let banner {
                 Text(banner).font(.nyCaption(13)).foregroundStyle(.nySuccess)
             }
@@ -173,6 +179,9 @@ struct AdminInventoryView: View {
     private var gridContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                if let stats {
+                    statsStrip(stats)
+                }
                 if let banner {
                     Text(banner).font(.nyCaption(13)).foregroundStyle(.nySuccess)
                 }
@@ -198,6 +207,33 @@ struct AdminInventoryView: View {
         }
     }
 
+    private func statsStrip(_ stats: AdminStats) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                statPill("Products", stats.totalProducts)
+                statPill("Active", stats.activeProducts)
+                statPill("Orders", stats.orders)
+                statPill("Messages", stats.openConversations)
+                statPill("Customers", stats.users)
+            }
+        }
+    }
+
+    private func statPill(_ label: String, _ value: Int) -> some View {
+        VStack(spacing: 2) {
+            Text("\(value)")
+                .font(.system(size: 18, weight: .bold, design: .serif))
+                .foregroundStyle(.nyBlack)
+            Text(label)
+                .font(.nyCaption(11))
+                .foregroundStyle(.nyGray)
+        }
+        .frame(minWidth: 68)
+        .padding(.vertical, 10)
+        .background(Color.nyLightGray)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     private var inactiveLink: some View {
         NavigationLink {
             AdminInactiveProductsView(onChange: handleChange)
@@ -217,6 +253,7 @@ struct AdminInventoryView: View {
         } catch {
             present(error)
         }
+        stats = try? await adminService.loadStats()
         isLoading = false
     }
 

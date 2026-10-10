@@ -3,31 +3,48 @@ import SwiftUI
 // MARK: - Color Extensions
 
 extension Color {
+    // MARK: - Dynamic color helper
+
+    /// Builds a color that resolves differently in light vs. dark mode.
+    static func nyDynamic(
+        light: (Double, Double, Double),
+        dark: (Double, Double, Double)
+    ) -> Color {
+        Color(uiColor: UIColor { traits in
+            let c = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(red: c.0, green: c.1, blue: c.2, alpha: 1)
+        })
+    }
+
     // MARK: - Brand Colors
-    
-    /// Primary brand pink - vibrant and attention-grabbing
+
+    /// Primary brand pink - vibrant and attention-grabbing (constant in both modes).
     static let nyPink = Color(red: 0.95, green: 0.4, blue: 0.6)
-    
-    /// Soft pink - used for backgrounds and accents
-    static let nySoftPink = Color(red: 0.99, green: 0.9, blue: 0.93)
-    
-    /// Light pink - subtle backgrounds
-    static let nyLightPink = Color(red: 0.98, green: 0.85, blue: 0.9)
-    
-    // MARK: - Neutral Colors
-    
-    /// Primary black for text and UI elements
-    static let nyBlack = Color(red: 0.15, green: 0.15, blue: 0.15)
-    
-    /// White for backgrounds
-    static let nyWhite = Color.white
-    
-    /// Gray for secondary text
-    static let nyGray = Color(red: 0.5, green: 0.5, blue: 0.5)
-    
-    /// Light gray for backgrounds and borders
-    static let nyLightGray = Color(red: 0.95, green: 0.95, blue: 0.95)
-    
+
+    /// Soft pink background — pale in light mode, a deep rose surface in dark mode.
+    static let nySoftPink = nyDynamic(light: (0.99, 0.90, 0.93), dark: (0.17, 0.11, 0.14))
+
+    /// Light pink — subtle backgrounds / borders; a slightly lifted rose in dark mode.
+    static let nyLightPink = nyDynamic(light: (0.98, 0.85, 0.90), dark: (0.24, 0.15, 0.19))
+
+    // MARK: - Neutral Colors (adaptive)
+
+    /// Primary text/ink — near-black in light mode, near-white in dark mode.
+    static let nyBlack = nyDynamic(light: (0.15, 0.15, 0.15), dark: (0.94, 0.94, 0.95))
+
+    /// Primary surface — white in light mode, a dark surface in dark mode.
+    static let nyWhite = nyDynamic(light: (1.0, 1.0, 1.0), dark: (0.12, 0.12, 0.13))
+
+    /// Secondary text — a mid gray that stays legible on both light and dark surfaces.
+    static let nyGray = nyDynamic(light: (0.50, 0.50, 0.50), dark: (0.66, 0.66, 0.68))
+
+    /// Light gray — fields/secondary surfaces; an elevated dark surface in dark mode.
+    static let nyLightGray = nyDynamic(light: (0.95, 0.95, 0.95), dark: (0.20, 0.20, 0.22))
+
+    /// Fixed dark ink for text/fills placed over imagery or gradients, which must NOT
+    /// invert in dark mode (e.g. the login wordmark over a photo, the sold-out badge).
+    static let nyInk = Color(red: 0.12, green: 0.12, blue: 0.12)
+
     // MARK: - Additional Accent Colors
     
     /// Success green

@@ -41,7 +41,7 @@ enum AppConfiguration {
             // Render web service URL. Update this to the exact URL Render assigns your
             // service after the first deploy (Dashboard → your service → top of page),
             // then attach your custom domain if desired.
-            return "https://naturallyyours-server.onrender.com"
+            return "https://naturallyyours.onrender.com"
         }
     }
     

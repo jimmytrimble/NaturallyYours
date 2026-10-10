@@ -95,6 +95,19 @@ struct ImportResult: Decodable {
     let total: Int
 }
 
+// MARK: - Admin overview stats
+
+struct AdminStats: Decodable {
+    let totalProducts: Int
+    let activeProducts: Int
+    let inactiveProducts: Int
+    let users: Int
+    let admins: Int
+    let orders: Int
+    let conversations: Int
+    let openConversations: Int
+}
+
 // MARK: - Payments
 
 /// Publishable Square client config from `GET /api/payments/config`, used to
