@@ -62,6 +62,9 @@ public func configure(_ app: Application) async throws {
     // Seed the catalog from SeedData/products.csv on first run (empty products table).
     try await ProductImporter.seedIfNeeded(app)
 
+    // Seed a starter vending machine from SeedData/vending.csv on first run.
+    try await VendingImporter.seedIfNeeded(app)
+
     // Register custom commands
     app.registerProductSeeder()
 

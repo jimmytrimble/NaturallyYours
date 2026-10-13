@@ -195,6 +195,7 @@ struct AdminVendingSlotEditSheet: View {
     @State private var onHand = ""
     @State private var hold = "10"
     @State private var isSaving = false
+    @State private var showCatalogPicker = false
     @State private var errorMessage: String?
     @State private var showError = false
 
@@ -210,6 +211,12 @@ struct AdminVendingSlotEditSheet: View {
                 Section("Slot") {
                     TextField("Slot number", text: $slotNumber).keyboardType(.numberPad)
                     TextField("Product name", text: $productName)
+                    Button {
+                        showCatalogPicker = true
+                    } label: {
+                        Label("Choose from catalog", systemImage: "bag")
+                            .font(.nyBody(14))
+                    }
                 }
                 Section("Stock") {
                     TextField("On hand", text: $onHand).keyboardType(.numberPad)
@@ -234,6 +241,10 @@ struct AdminVendingSlotEditSheet: View {
             .alert("Couldn't Save", isPresented: $showError) {
                 Button("OK") { showError = false }
             } message: { Text(errorMessage ?? "Please try again.") }
+            .sheet(isPresented: $showCatalogPicker) {
+                VendingCatalogPickerSheet { name in productName = name }
+                    .environment(adminService)
+            }
             .onAppear {
                 if let slot {
                     slotNumber = "\(slot.slotNumber)"
@@ -277,6 +288,66 @@ struct AdminVendingSlotEditSheet: View {
             catch {
                 errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
                 showError = true
+            }
+        }
+    }
+}
+
+// MARK: - Catalog picker
+
+/// Searchable list of storefront products; selecting one returns its name to fill a slot.
+/// (Vending slots keep a free-text product name so non-catalog items like brushes or
+/// lashes can be entered too.)
+struct VendingCatalogPickerSheet: View {
+    let onSelect: (String) -> Void
+
+    @Environment(AdminService.self) private var adminService
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var products: [CatalogProduct] = []
+    @State private var isLoading = false
+    @State private var searchText = ""
+
+    private var filtered: [CatalogProduct] {
+        let q = searchText.trimmingCharacters(in: .whitespaces).lowercased()
+        let active = products.filter(\.isActive)
+        guard !q.isEmpty else { return active }
+        return active.filter { $0.name.lowercased().contains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List(filtered) { product in
+                Button {
+                    onSelect(product.name)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 12) {
+                        AsyncImage(url: product.primaryImageURL) { phase in
+                            if let image = phase.image { image.resizable().scaledToFill() }
+                            else { Image(systemName: "photo").foregroundStyle(.nyGray.opacity(0.3)) }
+                        }
+                        .frame(width: 40, height: 40)
+                        .background(Color.nyLightGray)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                        Text(product.name)
+                            .font(.nyBody(15)).foregroundStyle(.nyBlack)
+                        Spacer()
+                    }
+                }
+            }
+            .overlay { if isLoading && products.isEmpty { ProgressView() } }
+            .searchable(text: $searchText, prompt: "Search catalog")
+            .navigationTitle("Choose Product")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+            .task {
+                isLoading = true
+                products = (try? await adminService.loadAllProducts()) ?? []
+                isLoading = false
             }
         }
     }
