@@ -12,6 +12,15 @@ public func configure(_ app: Application) async throws {
         app.http.server.configuration.port = port
     }
 
+    // Allow browser-based clients (e.g. the Flutter web build) to call the API.
+    // Placed first so even error responses carry CORS headers.
+    let cors = CORSMiddleware(configuration: .init(
+        allowedOrigin: .all,
+        allowedMethods: [.GET, .POST, .PATCH, .PUT, .DELETE, .OPTIONS],
+        allowedHeaders: [.accept, .authorization, .contentType, .origin, .xRequestedWith, .userAgent]
+    ))
+    app.middleware.use(cors, at: .beginning)
+
     // Serve files from the /Public folder (admin-uploaded product images live here).
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 

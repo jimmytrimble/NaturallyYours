@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'theme.dart';
+import 'screens/home_screen.dart';
 import 'screens/shop_screen.dart';
 
 void main() {
@@ -35,6 +36,7 @@ class _RootShellState extends State<RootShell> {
   int _index = 0;
 
   static const _tabs = [
+    HomeScreen(),
     ShopScreen(),
     _Placeholder('Cart'),
     _Placeholder('Favorites'),
@@ -49,6 +51,7 @@ class _RootShellState extends State<RootShell> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Shop'),
           NavigationDestination(icon: Icon(Icons.shopping_cart_outlined), selectedIcon: Icon(Icons.shopping_cart), label: 'Cart'),
           NavigationDestination(icon: Icon(Icons.favorite_border), selectedIcon: Icon(Icons.favorite), label: 'Favorites'),

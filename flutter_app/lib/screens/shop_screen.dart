@@ -6,7 +6,10 @@ import 'product_detail_screen.dart';
 
 /// Browse the catalog with category chips and a product grid.
 class ShopScreen extends StatefulWidget {
-  const ShopScreen({super.key});
+  const ShopScreen({super.key, this.initialCategory});
+
+  /// Preselect a category (used when navigating from a Home collection tile).
+  final String? initialCategory;
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -22,6 +25,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCategory = widget.initialCategory;
     _load();
   }
 
