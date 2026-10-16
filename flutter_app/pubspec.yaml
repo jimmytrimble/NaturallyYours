@@ -1,0 +1,23 @@
+name: naturally_yours
+description: Naturally Yours Beauty Supply — cross-platform (iOS + Android) client.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2            # REST calls to the Naturally Yours API
+  # Added when we port cart/auth (session cookies):
+  # dio: ^5.0.0
+  # cookie_jar: ^4.0.0
+  # dio_cookie_manager: ^3.1.1
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
