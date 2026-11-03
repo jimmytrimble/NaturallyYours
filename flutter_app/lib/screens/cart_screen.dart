@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/cart.dart';
 import '../services/cart_store.dart';
 import '../theme.dart';
+import 'checkout_screen.dart';
 
 /// Cart tab: line items with quantity steppers, subtotal, and a checkout button.
 class CartScreen extends StatefulWidget {
@@ -148,8 +149,8 @@ class _CartScreenState extends State<CartScreen> {
                   backgroundColor: NYTheme.pink,
                   minimumSize: const Size.fromHeight(50),
                 ),
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Checkout coming soon')),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                 ),
                 child: const Text('Checkout'),
               ),

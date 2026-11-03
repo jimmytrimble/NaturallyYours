@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../api_client.dart';
 import '../models/product.dart';
+import '../services/auth_service.dart';
 import '../services/cart_store.dart';
+import '../services/favorites_store.dart';
 import '../theme.dart';
 
 /// Full product page with add-to-cart.
@@ -49,8 +51,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         .replaceAll('&nbsp;', ' ')
         .trim();
 
+    final auth = context.watch<AuthService>();
+    final favorites = context.watch<FavoritesStore>();
+    final isFav = favorites.isFavorite(product);
+
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                color: NYTheme.pink),
+            onPressed: () async {
+              if (!auth.isAuthenticated) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Sign in to save favorites')),
+                );
+                return;
+              }
+              try {
+                await context.read<FavoritesStore>().toggle(product);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e is ApiException ? e.message : 'Could not update favorite')),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
       body: ListView(
         children: [
           AspectRatio(

@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'services/auth_service.dart';
 import 'services/cart_store.dart';
+import 'services/favorites_store.dart';
 import 'screens/home_screen.dart';
 import 'screens/shop_screen.dart';
 import 'screens/cart_screen.dart';
+import 'screens/favorites_screen.dart';
 import 'screens/account_screen.dart';
 
 void main() {
@@ -21,6 +23,7 @@ class NaturallyYoursApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()..restore()),
         ChangeNotifierProvider(create: (_) => CartStore()..refresh()),
+        ChangeNotifierProvider(create: (_) => FavoritesStore()),
       ],
       child: MaterialApp(
         title: 'Naturally Yours',
@@ -49,7 +52,7 @@ class _RootShellState extends State<RootShell> {
     HomeScreen(),
     ShopScreen(),
     CartScreen(),
-    _Placeholder('Favorites'),
+    FavoritesScreen(),
     AccountScreen(),
   ];
 
@@ -82,18 +85,6 @@ class _RootShellState extends State<RootShell> {
           const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Account'),
         ],
       ),
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder(this.title);
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('$title — coming soon', style: const TextStyle(color: Colors.grey)),
     );
   }
 }

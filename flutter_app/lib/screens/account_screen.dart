@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/cart_store.dart';
+import '../services/favorites_store.dart';
 import '../theme.dart';
 import 'login_screen.dart';
 
@@ -52,6 +53,7 @@ class AccountScreen extends StatelessWidget {
             onPressed: () async {
               await context.read<AuthService>().logout();
               context.read<CartStore>().reset();
+              context.read<FavoritesStore>().reset();
             },
           ),
         ] else ...[
