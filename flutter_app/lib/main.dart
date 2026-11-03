@@ -61,7 +61,16 @@ class _RootShellState extends State<RootShell> {
     final cartCount = context.watch<CartStore>().itemCount;
 
     return Scaffold(
-      body: SafeArea(child: _tabs[_index]),
+      // Cap content to a phone-like width so the layout stays correct on wide
+      // desktop/web windows (and is unaffected on real phones).
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: _tabs[_index],
+          ),
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
