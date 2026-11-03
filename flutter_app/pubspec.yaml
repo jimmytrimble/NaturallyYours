@@ -10,11 +10,12 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  http: ^1.2.2            # REST calls to the Naturally Yours API
-  # Added when we port cart/auth (session cookies):
-  # dio: ^5.0.0
-  # cookie_jar: ^4.0.0
-  # dio_cookie_manager: ^3.1.1
+  http: ^1.2.2                 # simple JSON GETs (catalog)
+  dio: ^5.7.0                  # HTTP with interceptors
+  cookie_jar: ^4.0.8           # persists the server session cookie
+  dio_cookie_manager: ^3.1.1   # wires the cookie jar into dio
+  provider: ^6.1.2             # lightweight state (cart / auth)
+  shared_preferences: ^2.3.2   # persist the cookie jar across launches
 
 dev_dependencies:
   flutter_lints: ^4.0.0

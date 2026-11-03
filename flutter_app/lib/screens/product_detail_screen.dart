@@ -1,11 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../api_client.dart';
 import '../models/product.dart';
+import '../services/cart_store.dart';
 import '../theme.dart';
 
-/// Full product page. (Add-to-cart lands when we port the cart/session layer.)
-class ProductDetailScreen extends StatelessWidget {
+/// Full product page with add-to-cart.
+class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, required this.product});
   final Product product;
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  bool _adding = false;
+
+  Future<void> _addToCart() async {
+    setState(() => _adding = true);
+    try {
+      await context.read<CartStore>().add(widget.product);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to cart')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e is ApiException ? e.message : 'Could not add to cart')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final product = widget.product;
 
   @override
   Widget build(BuildContext context) {
@@ -88,12 +122,12 @@ class ProductDetailScreen extends StatelessWidget {
               backgroundColor: product.inStock ? NYTheme.pink : Colors.grey,
               minimumSize: const Size.fromHeight(52),
             ),
-            onPressed: product.inStock
-                ? () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Cart coming soon')),
-                    )
-                : null,
-            child: Text(product.inStock ? 'Add to Cart' : 'Sold Out'),
+            onPressed: (!product.inStock || _adding) ? null : _addToCart,
+            child: _adding
+                ? const SizedBox(
+                    height: 22, width: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : Text(product.inStock ? 'Add to Cart' : 'Sold Out'),
           ),
         ),
       ),

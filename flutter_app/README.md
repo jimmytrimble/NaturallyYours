@@ -75,6 +75,13 @@ Scales better — **Google Play internal testing** (the TestFlight analog):
 - `screens/` — UI.
 - `theme.dart` — brand pink theme, light/dark via `ThemeMode.system`.
 
-When we port **cart/auth** (which use server session cookies), we'll switch the
-HTTP layer to `dio` + `cookie_jar` (dependencies are listed, commented, in
-`pubspec.yaml`) so the session cookie persists like it does on iOS.
+**Auth & cart** are wired: the HTTP layer uses `dio` + `cookie_jar` so the server
+session cookie persists (guest cart works via the session; login via Basic auth).
+State is via `provider` (`AuthService`, `CartStore`). After pulling, run
+`flutter pub get` to fetch the new packages.
+
+Caveat — **web vs native cookies:** the cookie jar runs on **native (Android/iOS)**,
+so cart/login work there. In the **Chrome** web build, cookies are managed by the
+browser and credentialed cross-origin requests need extra setup, so guest cart /
+login may not persist on web. Use an Android emulator/device to test cart + login.
+Catalog browsing works everywhere.

@@ -3,13 +3,9 @@ import '../models/product.dart';
 
 /// Loads the public product catalog from the API.
 class CatalogService {
-  CatalogService({ApiClient? client}) : _client = client ?? ApiClient();
-
-  final ApiClient _client;
-
   /// GET /api/products (paginated envelope: { items, metadata }).
   Future<List<Product>> loadProducts() async {
-    final json = await _client.getJson('/api/products', query: {'per': '200'});
+    final json = await ApiClient.shared.get('/api/products', query: {'per': '200'});
     final items = (json?['items'] as List?) ?? const [];
     return items
         .map((e) => Product.fromJson(e as Map<String, dynamic>))
@@ -18,7 +14,7 @@ class CatalogService {
 
   /// GET /api/products/featured (admin-curated best sellers).
   Future<List<Product>> loadFeatured() async {
-    final json = await _client.getJson('/api/products/featured');
+    final json = await ApiClient.shared.get('/api/products/featured');
     final list = (json as List?) ?? const [];
     return list
         .map((e) => Product.fromJson(e as Map<String, dynamic>))
