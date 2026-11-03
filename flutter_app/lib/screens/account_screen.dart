@@ -5,6 +5,8 @@ import '../services/cart_store.dart';
 import '../services/favorites_store.dart';
 import '../theme.dart';
 import 'login_screen.dart';
+import 'contact_screen.dart';
+import 'admin/admin_gate.dart';
 
 /// Account tab: profile + sign out when logged in; sign-in prompt otherwise.
 class AccountScreen extends StatelessWidget {
@@ -74,7 +76,24 @@ class AccountScreen extends StatelessWidget {
             child: const Text('Sign In / Create Account'),
           ),
         ],
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.forum_outlined),
+          title: const Text('Contact Us'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ContactScreen()),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.lock_outline),
+          title: const Text('Staff Login'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AdminGate()),
+          ),
+        ),
         const Divider(),
         const ListTile(
           leading: Icon(Icons.info_outline),

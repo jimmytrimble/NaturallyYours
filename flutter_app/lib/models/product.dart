@@ -15,6 +15,8 @@ class Product {
     this.salePrice,
     this.sku,
     this.isFeatured = false,
+    this.isActive = true,
+    this.stockQuantity = 0,
     this.tags = const [],
   });
 
@@ -28,6 +30,8 @@ class Product {
   final bool inStock;
   final bool onSale;
   final bool isFeatured;
+  final bool isActive;
+  final int stockQuantity;
   final List<String> imageUrls;
   final String? sku;
   final List<String> tags;
@@ -51,6 +55,8 @@ class Product {
       inStock: (json['inStock'] ?? false) as bool,
       onSale: (json['onSale'] ?? false) as bool,
       isFeatured: (json['isFeatured'] ?? false) as bool,
+      isActive: (json['isActive'] ?? true) as bool,
+      stockQuantity: (json['stockQuantity'] ?? 0) as int,
       imageUrls: ((json['imageURLs'] as List?) ?? const [])
           .map((e) => e.toString())
           .toList(),
