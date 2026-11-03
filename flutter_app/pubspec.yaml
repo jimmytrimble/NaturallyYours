@@ -10,8 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  http: ^1.2.2                 # simple JSON GETs (catalog)
-  dio: ^5.7.0                  # HTTP with interceptors
+  dio: ^5.7.0                  # HTTP with interceptors + cookies
   cookie_jar: ^4.0.8           # persists the server session cookie
   dio_cookie_manager: ^3.1.1   # wires the cookie jar into dio
   provider: ^6.1.2             # lightweight state (cart / auth)

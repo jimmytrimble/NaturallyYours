@@ -42,9 +42,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-
-  @override
-  Widget build(BuildContext context) {
     final cleaned = product.description
         .replaceAll(RegExp(r'<[^>]+>'), '')
         .replaceAll('&amp;', '&')

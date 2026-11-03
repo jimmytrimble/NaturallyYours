@@ -59,14 +59,13 @@ class _AdminOrdersState extends State<AdminOrders> {
                 _StatusTag(status: o.status),
               ],
             ),
-            onTap: () async {
-              final updated = await Navigator.of(context).push<AdminOrder>(MaterialPageRoute(
-                builder: (_) => _OrderDetail(service: widget.service, order: o),
-              ));
-              if (updated != null) {
-                setState(() => _orders[i] = updated);
-              }
-            },
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => _OrderDetail(
+                service: widget.service,
+                order: o,
+                onUpdated: (u) => setState(() => _orders[i] = u),
+              ),
+            )),
           );
         },
       ),
@@ -98,9 +97,10 @@ class _StatusTag extends StatelessWidget {
 }
 
 class _OrderDetail extends StatefulWidget {
-  const _OrderDetail({required this.service, required this.order});
+  const _OrderDetail({required this.service, required this.order, required this.onUpdated});
   final AdminService service;
   final AdminOrder order;
+  final void Function(AdminOrder) onUpdated;
 
   @override
   State<_OrderDetail> createState() => _OrderDetailState();
@@ -121,6 +121,7 @@ class _OrderDetailState extends State<_OrderDetail> {
     setState(() => _updating = true);
     try {
       _order = await widget.service.updateOrderStatus(_order.id!, status);
+      widget.onUpdated(_order);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,55 +138,49 @@ class _OrderDetailState extends State<_OrderDetail> {
     final o = _order;
     return Scaffold(
       appBar: AppBar(title: Text(o.orderNumber)),
-      body: WillPopScope(
-        onWillPop: () async {
-          Navigator.of(context).pop(_order);
-          return false;
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
-              children: [
-                const Text('Status: '),
-                _updating
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : DropdownButton<String>(
-                        value: o.status,
-                        items: [
-                          for (final s in orderStatuses)
-                            DropdownMenuItem(value: s, child: Text(orderStatusLabel(s))),
-                        ],
-                        onChanged: (v) { if (v != null) _setStatus(v); },
-                      ),
-              ],
-            ),
-            const Divider(),
-            Text('Customer', style: _h()),
-            Text('${o.customerName}\n${o.email}'),
-            const SizedBox(height: 12),
-            Text('Items', style: _h()),
-            for (final it in o.items)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(child: Text('${it.productName}  ×${it.quantity}')),
-                    Text(o.money(it.lineTotal)),
-                  ],
-                ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Row(
+            children: [
+              const Text('Status: '),
+              _updating
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : DropdownButton<String>(
+                      value: o.status,
+                      items: [
+                        for (final s in orderStatuses)
+                          DropdownMenuItem(value: s, child: Text(orderStatusLabel(s))),
+                      ],
+                      onChanged: (v) { if (v != null) _setStatus(v); },
+                    ),
+            ],
+          ),
+          const Divider(),
+          Text('Customer', style: _h()),
+          Text('${o.customerName}\n${o.email}'),
+          const SizedBox(height: 12),
+          Text('Items', style: _h()),
+          for (final it in o.items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: Text('${it.productName}  ×${it.quantity}')),
+                  Text(o.money(it.lineTotal)),
+                ],
               ),
-            const Divider(),
-            _row('Subtotal', o.money(o.subtotal)),
-            _row('Shipping', o.money(o.shippingAmount)),
-            _row('Tax', o.money(o.taxAmount)),
-            _row('Total', o.money(o.total), bold: true),
-            const SizedBox(height: 12),
-            Text('Ship To', style: _h()),
-            Text(o.shippingLines.join('\n')),
-          ],
-        ),
+            ),
+          const Divider(),
+          _row('Subtotal', o.money(o.subtotal)),
+          _row('Shipping', o.money(o.shippingAmount)),
+          _row('Tax', o.money(o.taxAmount)),
+          _row('Total', o.money(o.total), bold: true),
+          const SizedBox(height: 12),
+          Text('Ship To', style: _h()),
+          Text(o.shippingLines.join('\n')),
+        ],
       ),
     );
   }
