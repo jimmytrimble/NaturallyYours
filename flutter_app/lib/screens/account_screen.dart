@@ -20,7 +20,10 @@ class AccountScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const SizedBox(height: 12),
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Text('Account', style: NYTheme.screenTitle),
+        ),
         if (user != null) ...[
           Row(
             children: [

@@ -36,19 +36,32 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
     if (store.isEmpty) return _empty();
 
-    return RefreshIndicator(
-      onRefresh: store.refresh,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.66,
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Favorites', style: NYTheme.screenTitle),
+          ),
         ),
-        itemCount: store.favorites.length,
-        itemBuilder: (_, i) => ProductCard(product: store.favorites[i]),
-      ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: store.refresh,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.66,
+              ),
+              itemCount: store.favorites.length,
+              itemBuilder: (_, i) => ProductCard(product: store.favorites[i]),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

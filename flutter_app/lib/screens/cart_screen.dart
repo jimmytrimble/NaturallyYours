@@ -35,6 +35,13 @@ class _CartScreenState extends State<CartScreen> {
 
     return Column(
       children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Cart', style: NYTheme.screenTitle),
+          ),
+        ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: store.refresh,
