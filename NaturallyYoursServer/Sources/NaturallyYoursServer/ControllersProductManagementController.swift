@@ -156,7 +156,8 @@ struct ProductManagementController: RouteCollection {
         try await product.save(on: req.db)
         
         req.logger.info("Admin \(admin.email) updated product: \(product.name)")
-        
+        await pushToShopify(product, req: req)
+
         return product.toDTO()
     }
     
@@ -214,7 +215,8 @@ struct ProductManagementController: RouteCollection {
         try await product.save(on: req.db)
         
         req.logger.info("Admin \(admin.email) updated price for product: \(product.name)")
-        
+        await pushToShopify(product, req: req)
+
         return product.toDTO()
     }
     
@@ -239,7 +241,8 @@ struct ProductManagementController: RouteCollection {
         try await product.save(on: req.db)
         
         req.logger.info("Admin \(admin.email) updated stock for product: \(product.name)")
-        
+        await pushToShopify(product, req: req)
+
         return product.toDTO()
     }
     
@@ -283,7 +286,8 @@ struct ProductManagementController: RouteCollection {
         try await product.save(on: req.db)
         
         req.logger.info("Admin \(admin.email) activated product: \(product.name)")
-        
+        await pushToShopify(product, req: req)
+
         return product.toDTO()
     }
     
@@ -302,8 +306,36 @@ struct ProductManagementController: RouteCollection {
         try await product.save(on: req.db)
 
         req.logger.info("Admin \(admin.email) deactivated product: \(product.name)")
+        await pushToShopify(product, req: req)
 
         return product.toDTO()
+    }
+
+    /// Best-effort push of a product's core fields, price, status, and stock to Shopify.
+    /// No-op when Shopify isn't configured or the product isn't linked. Never throws —
+    /// local admin edits must succeed regardless of Shopify availability.
+    private func pushToShopify(_ product: Product, req: Request) async {
+        guard let config = ShopifyConfiguration.fromEnvironment(),
+              let productID = product.shopifyProductID else { return }
+        let service = ShopifyService(config: config, client: req.client, logger: req.logger)
+        do {
+            try await service.updateProduct(
+                productID: productID,
+                title: product.name,
+                descriptionHtml: product.description,
+                status: product.isActive ? "ACTIVE" : "DRAFT",
+                tags: product.tags
+            )
+            if let variantID = product.shopifyVariantID {
+                try await service.updateVariantPrice(productID: productID, variantID: variantID, price: product.effectivePrice)
+            }
+            if let inventoryItemID = product.shopifyInventoryItemID {
+                let locationID = try await service.primaryLocationID()
+                try await service.setInventory(inventoryItemID: inventoryItemID, locationID: locationID, quantity: product.stockQuantity)
+            }
+        } catch {
+            req.logger.warning("Shopify push failed for \(product.name): \(String(reflecting: error))")
+        }
     }
 
     /// Add a product to the featured best-sellers rail (admin only).

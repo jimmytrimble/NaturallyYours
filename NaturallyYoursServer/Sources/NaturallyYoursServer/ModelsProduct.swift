@@ -48,7 +48,20 @@ final class Product: Model, @unchecked Sendable {
     
     @Field(key: "tags")
     var tags: [String]
-    
+
+    // MARK: - Shopify linkage (Option A: Shopify is the inventory source of truth)
+    /// Shopify product GID (e.g. "gid://shopify/Product/123"). Null for app-only items.
+    @OptionalField(key: "shopify_product_id")
+    var shopifyProductID: String?
+
+    /// Default variant GID used for price/inventory operations.
+    @OptionalField(key: "shopify_variant_id")
+    var shopifyVariantID: String?
+
+    /// Inventory item GID for the default variant (used to set stock levels).
+    @OptionalField(key: "shopify_inventory_item_id")
+    var shopifyInventoryItemID: String?
+
     @Timestamp(key: "created_at", on: .create)
     var createdAt: Date?
     

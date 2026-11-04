@@ -21,6 +21,8 @@ class _AdminInventoryState extends State<AdminInventory> {
   List<Product> _all = [];
   AdminStats? _stats;
   bool _loading = true;
+  bool _shopifyConfigured = false;
+  bool _syncing = false;
   String _query = '';
   bool _showInactive = false;
 
@@ -35,8 +37,30 @@ class _AdminInventoryState extends State<AdminInventory> {
     try {
       _all = await widget.service.loadAllProducts();
       _stats = await widget.service.stats();
+      _shopifyConfigured = await widget.service.shopifyConfigured();
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _syncShopify() async {
+    setState(() => _syncing = true);
+    try {
+      final r = await widget.service.shopifySync();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Synced from Shopify: ${r['created']} added, ${r['updated']} updated'),
+        ));
+      }
+      await _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e is ApiException ? e.message : 'Sync failed')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
   }
 
   List<Product> get _visible {
@@ -74,6 +98,17 @@ class _AdminInventoryState extends State<AdminInventory> {
           padding: const EdgeInsets.all(12),
           children: [
             if (_stats != null) _statsStrip(_stats!),
+            if (_shopifyConfigured && widget.admin.canManageCatalog)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: OutlinedButton.icon(
+                  icon: _syncing
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.sync),
+                  label: Text(_syncing ? 'Syncing…' : 'Sync from Shopify'),
+                  onPressed: _syncing ? null : _syncShopify,
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: TextField(

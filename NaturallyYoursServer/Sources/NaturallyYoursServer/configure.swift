@@ -56,6 +56,7 @@ public func configure(_ app: Application) async throws {
     
     // E-commerce migrations
     app.migrations.add(CreateProduct())
+    app.migrations.add(AddShopifyFields())
     app.migrations.add(AddProductFeatured())
     app.migrations.add(CreateCart())
     app.migrations.add(CreateCartItem())

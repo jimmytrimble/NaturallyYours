@@ -32,6 +32,22 @@ class AdminService {
     } catch (_) {}
   }
 
+  // Shopify integration
+  Future<bool> shopifyConfigured() async {
+    try {
+      final data = await ApiClient.shared.get('/api/admin/shopify/status');
+      return (data as Map)['configured'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Pulls catalog + inventory from Shopify into the app's DB. Returns {fetched, created, updated}.
+  Future<Map<String, dynamic>> shopifySync() async {
+    final data = await ApiClient.shared.post('/api/admin/shopify/sync');
+    return (data as Map).cast<String, dynamic>();
+  }
+
   Future<AdminStats?> stats() async {
     try {
       final data = await ApiClient.shared.get('/api/admin/stats');
