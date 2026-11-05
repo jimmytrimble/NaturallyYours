@@ -13,7 +13,7 @@ struct ShopifyConfiguration: Sendable {
             let domain = Environment.get("SHOPIFY_STORE_DOMAIN"), !domain.isEmpty,
             let token = Environment.get("SHOPIFY_ADMIN_TOKEN"), !token.isEmpty
         else { return nil }
-        let version = Environment.get("SHOPIFY_API_VERSION") ?? "2024-10"
+        let version = Environment.get("SHOPIFY_API_VERSION") ?? "2025-10"
         return ShopifyConfiguration(storeDomain: domain, adminToken: token, apiVersion: version)
     }
 
